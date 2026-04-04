@@ -274,9 +274,7 @@ function setMarketStatus(online) {
    ============================================================ */
 function buildPlaceholders() {
   // screener excluded — has its own buildScreener()
-  const defs = {
-    settings: { icon: "⚙️", title: "Settings", sub: "Wallets & thresholds — coming soon" }
-  };
+  const defs = {};
   for (const [tab, cfg] of Object.entries(defs)) {
     const panel = document.getElementById("tab-" + tab);
     if (!panel) continue;
@@ -442,6 +440,7 @@ function initModal() {
 /* ============================================================
    SCREENER — BUILD & RENDER
    ============================================================ */
+let _userProfile  = null; // shared across getMe() and Settings screen
 let _activeFilter = "all";
 let _activeSort    = "newest";
 let _screenerSignals = MOCK_SCREENER;
@@ -570,6 +569,189 @@ async function loadScreenerData() {
     renderSignals(_screenerSignals);
     const updEl = document.getElementById("screener-updated");
     if (updEl) updEl.textContent = "Offline · mock data";
+  }
+}
+
+/* ============================================================
+   SETTINGS / PROFILE SCREEN
+   ============================================================ */
+function buildSettings() {
+  const panel = document.getElementById("tab-settings");
+  if (!panel) return;
+
+  panel.innerHTML = `
+    <div class="settings-screen">
+
+      <!-- PROFILE -->
+      <div class="settings-section card">
+        <div class="settings-section-title">Profile</div>
+        <div class="settings-profile-top">
+          <div class="settings-avatar" id="settings-avatar">?</div>
+          <div class="settings-user-info">
+            <div class="settings-display-name" id="settings-name">Loading…</div>
+            <div class="settings-username"     id="settings-username"></div>
+          </div>
+          <div class="settings-user-badges" id="settings-badges"></div>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Telegram ID</span>
+          <span class="settings-value" id="settings-tid">—</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Language</span>
+          <span class="settings-value" id="settings-lang">—</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Member since</span>
+          <span class="settings-value" id="settings-since">—</span>
+        </div>
+      </div>
+
+      <!-- APP STATUS -->
+      <div class="settings-section card">
+        <div class="settings-section-title">App Status</div>
+        <div class="settings-row">
+          <span class="settings-label">Version</span>
+          <span class="settings-value dim">v1 Beta</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">API</span>
+          <span class="settings-value dim" id="settings-api-status">Checking…</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Dashboard</span>
+          <span class="settings-value live">Live</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Screener</span>
+          <span class="settings-value live">Live</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">RSI Data</span>
+          <span class="settings-value live">Live</span>
+        </div>
+      </div>
+
+      <!-- PREFERENCES -->
+      <div class="settings-section card">
+        <div class="settings-section-title">Preferences</div>
+        <div class="settings-row">
+          <span class="settings-label">Default tab</span>
+          <span class="settings-value dim">Dashboard</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Alerts</span>
+          <span class="settings-value dim">Coming soon</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Wallets</span>
+          <span class="settings-value dim">Coming soon</span>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="settings-section card settings-actions">
+        <button class="settings-action-btn" id="settings-refresh-btn">🔄 Refresh Profile</button>
+        <button class="settings-action-btn" disabled>💬 Support — coming soon</button>
+        <button class="settings-action-btn" disabled>📢 Channel — coming soon</button>
+      </div>
+
+      <div class="nav-spacer"></div>
+    </div>`;
+
+  // Load profile (use cached if available)
+  loadSettingsProfile();
+  checkApiStatus();
+
+  document.getElementById("settings-refresh-btn").addEventListener("click", () => {
+    document.getElementById("settings-name").textContent = "Loading…";
+    _userProfile = null;
+    loadSettingsProfile();
+  });
+}
+
+async function loadSettingsProfile() {
+  // Use cached profile if already fetched
+  if (_userProfile) {
+    renderSettingsProfile(_userProfile);
+    return;
+  }
+
+  const tg = window.Telegram?.WebApp;
+  if (!tg || !tg.initData) {
+    renderSettingsProfile(null);
+    return;
+  }
+
+  try {
+    const r = await fetch(`${API_BASE}/api/me`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ init_data: tg.initData }),
+    });
+    const data = await r.json();
+    if (r.ok && data.ok) {
+      _userProfile = data;
+      renderSettingsProfile(data);
+    } else {
+      renderSettingsProfile(null);
+    }
+  } catch (_) {
+    renderSettingsProfile(null);
+  }
+}
+
+function renderSettingsProfile(profile) {
+  const avatarEl  = document.getElementById("settings-avatar");
+  const nameEl    = document.getElementById("settings-name");
+  const userEl    = document.getElementById("settings-username");
+  const tidEl     = document.getElementById("settings-tid");
+  const langEl    = document.getElementById("settings-lang");
+  const sinceEl   = document.getElementById("settings-since");
+  const badgesEl  = document.getElementById("settings-badges");
+  if (!avatarEl) return; // panel not rendered yet
+
+  if (!profile) {
+    avatarEl.textContent = "?";
+    nameEl.textContent   = "Not connected";
+    userEl.textContent   = "Open in Telegram to see profile";
+    tidEl.textContent = langEl.textContent = sinceEl.textContent = "—";
+    badgesEl.innerHTML   = "";
+    return;
+  }
+
+  avatarEl.textContent = (profile.first_name || "?")[0].toUpperCase();
+  nameEl.textContent   = profile.first_name || "—";
+  userEl.textContent   = profile.username ? "@" + profile.username : "";
+  tidEl.textContent    = profile.telegram_id;
+  langEl.textContent   = (profile.language_code || "en").toUpperCase();
+
+  const since = profile.first_seen_at
+    ? new Date(profile.first_seen_at * 1000).toLocaleDateString("en-GB",
+        { day: "2-digit", month: "short", year: "numeric" })
+    : "—";
+  sinceEl.textContent = since;
+
+  const badges = [];
+  if (profile.is_premium) badges.push('<span class="settings-badge gold">Premium</span>');
+  else                     badges.push('<span class="settings-badge muted">Free</span>');
+  if (profile.is_admin)    badges.push('<span class="settings-badge teal">Admin</span>');
+  badgesEl.innerHTML = badges.join("");
+}
+
+async function checkApiStatus() {
+  const el = document.getElementById("settings-api-status");
+  if (!el) return;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const r = await fetch(`${API_BASE}/health`, { signal: controller.signal });
+    clearTimeout(timer);
+    el.textContent  = r.ok ? "Connected" : "Error";
+    el.className    = "settings-value " + (r.ok ? "live" : "error");
+  } catch (_) {
+    el.textContent = "Offline";
+    el.className   = "settings-value error";
   }
 }
 
@@ -1030,6 +1212,7 @@ async function getMe() {
     const data = await r.json();
 
     if (r.ok && data.ok) {
+      _userProfile = data;
       console.log("[me] 👤 User profile:", {
         id:          data.telegram_id,
         name:        data.first_name,
@@ -1062,6 +1245,7 @@ document.addEventListener("DOMContentLoaded", () => {
   buildScreener();
   buildRSI();
   buildCalc();
+  buildSettings();
   initModal();
   initTabs();
 

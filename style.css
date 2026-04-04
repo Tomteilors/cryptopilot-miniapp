@@ -1252,6 +1252,157 @@ html, body {
 .rsi-dot.oversold   { background: #ff6b62; box-shadow: 0 0 6px rgba(248,81,73,0.6); }
 .rsi-dot.overbought { background: #4ade80; box-shadow: 0 0 6px rgba(63,185,80,0.6); }
 
+/* ===== SETTINGS SCREEN ===== */
+
+.settings-screen {
+  padding-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-section {
+  padding: 14px;
+}
+
+.settings-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 12px;
+}
+
+/* Profile top row */
+.settings-profile-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.settings-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.settings-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-display-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.settings-username {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 1px;
+}
+
+.settings-user-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.settings-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.settings-badge.gold  { background: var(--gold-dim); color: var(--gold); border: 1px solid var(--gold-border); }
+.settings-badge.teal  { background: rgba(77,212,198,0.14); color: var(--teal); border: 1px solid rgba(77,212,198,0.30); }
+.settings-badge.muted { background: rgba(125,133,144,0.10); color: var(--text-dim); border: 1px solid rgba(125,133,144,0.15); }
+
+/* Settings rows */
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 8px;
+}
+
+.settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+.settings-row:first-child { padding-top: 0; }
+
+.settings-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.settings-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: right;
+  min-width: 0;
+  word-break: break-all;
+}
+
+.settings-value.live  { color: var(--green); }
+.settings-value.error { color: var(--red); }
+.settings-value.dim   { color: var(--text-dim); font-weight: 400; }
+
+/* Action buttons */
+.settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-action-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-family: inherit;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s;
+  width: 100%;
+}
+
+.settings-action-btn:not([disabled]):active {
+  background: rgba(255,255,255,0.10);
+}
+
+.settings-action-btn[disabled] {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
 /* ===== SKELETON LOADER ===== */
 .skeleton {
   background: linear-gradient(90deg, var(--bg-card2) 25%, rgba(255,255,255,0.04) 50%, var(--bg-card2) 75%);
