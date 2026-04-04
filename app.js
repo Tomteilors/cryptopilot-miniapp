@@ -137,6 +137,8 @@ const API_BASE = (
   window.location.hostname === "127.0.0.1"
 ) ? "http://127.0.0.1:8001" : "https://api.cryptopilot.se";
 
+const APP_VERSION = "v1.0";
+
 /* ============================================================
    DATA LAYER
    getData() — единственная точка получения данных.
@@ -259,7 +261,10 @@ function setMarketStatus(online) {
   const label = document.getElementById("status-label");
   const dot   = document.querySelector(".status-dot");
   if (online) {
-    label.textContent  = "Live";
+    const now = new Date();
+    const hh  = now.getHours().toString().padStart(2, "0");
+    const mm  = now.getMinutes().toString().padStart(2, "0");
+    label.textContent  = "Live · " + hh + ":" + mm;
     dot.style.background = "var(--green)";
     dot.style.boxShadow  = "0 0 5px var(--green)";
   } else {
@@ -612,7 +617,7 @@ function buildSettings() {
         <div class="settings-section-title">App Status</div>
         <div class="settings-row">
           <span class="settings-label">Version</span>
-          <span class="settings-value dim">v1 Beta</span>
+          <span class="settings-value dim">${APP_VERSION}</span>
         </div>
         <div class="settings-row">
           <span class="settings-label">API</span>
@@ -637,7 +642,7 @@ function buildSettings() {
         <div class="settings-section-title">Preferences</div>
         <div class="settings-row">
           <span class="settings-label">Default tab</span>
-          <span class="settings-value dim">Dashboard</span>
+          <span class="settings-value dim" id="settings-default-tab">${_getDefaultTabLabel()}</span>
         </div>
         <div class="settings-row">
           <span class="settings-label">Alerts</span>
@@ -652,8 +657,8 @@ function buildSettings() {
       <!-- ACTIONS -->
       <div class="settings-section card settings-actions">
         <button class="settings-action-btn" id="settings-refresh-btn">🔄 Refresh Profile</button>
-        <button class="settings-action-btn" disabled>💬 Support — coming soon</button>
-        <button class="settings-action-btn" disabled>📢 Channel — coming soon</button>
+        <button class="settings-action-btn" id="settings-support-btn">💬 Support Community</button>
+        <button class="settings-action-btn" id="settings-channel-btn">📢 Screener Channel</button>
       </div>
 
       <div class="nav-spacer"></div>
@@ -667,6 +672,14 @@ function buildSettings() {
     document.getElementById("settings-name").textContent = "Loading…";
     _userProfile = null;
     loadSettingsProfile();
+  });
+
+  document.getElementById("settings-support-btn").addEventListener("click", () => {
+    openExternalLink("https://t.me/+YDkeY1vXzsllOGVk");
+  });
+
+  document.getElementById("settings-channel-btn").addEventListener("click", () => {
+    openExternalLink("https://t.me/+MhZkGvxjGXJkMjg0");
   });
 }
 
@@ -1129,20 +1142,43 @@ function buildCalc() {
 /* ============================================================
    TAB NAVIGATION
    ============================================================ */
-function initTabs() {
+const TAB_LABELS = { dashboard: "Dashboard", screener: "Screener", rsi: "RSI", calc: "Calc", settings: "Settings" };
+
+function _getDefaultTabLabel() {
+  const tab = localStorage.getItem("cp_default_tab") || "dashboard";
+  return TAB_LABELS[tab] || "Dashboard";
+}
+
+function _activateTab(target) {
   const navItems = document.querySelectorAll(".nav-item");
   const panels   = document.querySelectorAll(".tab-panel");
+  navItems.forEach(b => b.classList.remove("active"));
+  panels.forEach(p => p.classList.remove("active"));
+  const btn = document.querySelector(`.nav-item[data-tab="${target}"]`);
+  if (btn) btn.classList.add("active");
+  const panel = document.getElementById("tab-" + target);
+  if (panel) panel.classList.add("active");
+}
+
+function initTabs() {
+  const navItems = document.querySelectorAll(".nav-item");
 
   navItems.forEach(btn => {
     btn.addEventListener("click", () => {
       const target = btn.dataset.tab;
-      navItems.forEach(b => b.classList.remove("active"));
-      panels.forEach(p => p.classList.remove("active"));
-      btn.classList.add("active");
-      const panel = document.getElementById("tab-" + target);
-      if (panel) panel.classList.add("active");
+      _activateTab(target);
+      localStorage.setItem("cp_default_tab", target);
+      // Update settings default tab label if visible
+      const dtEl = document.getElementById("settings-default-tab");
+      if (dtEl) dtEl.textContent = TAB_LABELS[target] || target;
     });
   });
+
+  // Restore saved tab on startup
+  const savedTab = localStorage.getItem("cp_default_tab");
+  if (savedTab && savedTab !== "dashboard") {
+    _activateTab(savedTab);
+  }
 }
 
 /* ============================================================
