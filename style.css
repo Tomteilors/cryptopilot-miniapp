@@ -1122,6 +1122,120 @@ html, body {
 .calc-result-value.green { color: var(--green); }
 .calc-result-value.gold  { color: var(--gold); }
 
+/* ── Calc: group card ── */
+.calc-group {
+  padding: 14px 14px 4px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.calc-group-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 12px;
+}
+
+/* ── Calc: risk presets ── */
+.calc-presets {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.preset-btn {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 7px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.preset-btn.active {
+  background: rgba(245,196,81,0.14);
+  border-color: rgba(245,196,81,0.38);
+  color: var(--gold);
+}
+
+/* ── Calc: expand buttons (+ Entry 2 / + Target 2) ── */
+.calc-expand-btn {
+  display: inline-block;
+  background: none;
+  border: none;
+  color: var(--teal);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 0 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+}
+
+/* ── Calc: advanced (leverage) toggle ── */
+.calc-advanced-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 0 6px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calc-adv-arrow {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.calc-adv-field {
+  padding-top: 8px;
+}
+
+/* ── Calc: reset button ── */
+.calc-reset-btn {
+  display: block;
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s;
+}
+
+.calc-reset-btn:active {
+  background: rgba(255,255,255,0.09);
+}
+
 /* ===== RSI SCREEN ===== */
 
 .rsi-screen {

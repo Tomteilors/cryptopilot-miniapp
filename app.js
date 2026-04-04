@@ -1005,24 +1005,57 @@ function buildCalc() {
 
   panel.innerHTML = `
     <div class="calc-screen">
-      <div class="calc-header">
-        <span class="calc-title">Position Calc</span>
-        <span class="calc-subtitle">Size your trade by risk</span>
-      </div>
 
+      <!-- Direction -->
       <div class="calc-segment" id="calc-segment">
         <button class="seg-btn active" data-dir="long">↑ Long</button>
         <button class="seg-btn" data-dir="short">↓ Short</button>
       </div>
 
-      <div class="calc-inputs card">
+      <!-- Account & Risk -->
+      <div class="calc-group card">
+        <div class="calc-group-title">Account & Risk</div>
         <div class="calc-field">
-          <label class="calc-label">Entry Price</label>
+          <label class="calc-label">Deposit</label>
+          <div class="calc-input-wrap">
+            <span class="calc-prefix">$</span>
+            <input class="calc-input" id="c-account" type="number" inputmode="decimal" placeholder="10 000" min="0" step="any"/>
+          </div>
+        </div>
+        <div class="calc-field">
+          <label class="calc-label">Risk</label>
+          <div class="calc-input-wrap">
+            <input class="calc-input" id="c-risk" type="number" inputmode="decimal" placeholder="1" min="0.01" max="100" step="any"/>
+            <span class="calc-suffix">%</span>
+          </div>
+        </div>
+        <div class="calc-presets" id="calc-presets">
+          <button class="preset-btn" data-val="0.25">0.25%</button>
+          <button class="preset-btn" data-val="0.5">0.5%</button>
+          <button class="preset-btn" data-val="1">1%</button>
+          <button class="preset-btn" data-val="2">2%</button>
+        </div>
+      </div>
+
+      <!-- Trade -->
+      <div class="calc-group card">
+        <div class="calc-group-title">Trade</div>
+        <div class="calc-field">
+          <label class="calc-label">Entry 1</label>
           <div class="calc-input-wrap">
             <span class="calc-prefix">$</span>
             <input class="calc-input" id="c-entry" type="number" inputmode="decimal" placeholder="0.00" min="0" step="any"/>
           </div>
         </div>
+        <div class="calc-field" id="entry2-field" style="display:none">
+          <label class="calc-label">Entry 2 <span class="calc-optional">avg</span></label>
+          <div class="calc-input-wrap">
+            <span class="calc-prefix">$</span>
+            <input class="calc-input" id="c-entry2" type="number" inputmode="decimal" placeholder="0.00" min="0" step="any"/>
+          </div>
+        </div>
+        <button class="calc-expand-btn" id="entry2-toggle">+ Entry 2</button>
+
         <div class="calc-field">
           <label class="calc-label">Stop Loss</label>
           <div class="calc-input-wrap" id="c-sl-wrap">
@@ -1031,29 +1064,28 @@ function buildCalc() {
           </div>
         </div>
         <div class="calc-field">
-          <label class="calc-label">Take Profit <span class="calc-optional">optional</span></label>
+          <label class="calc-label">Target 1</label>
           <div class="calc-input-wrap">
             <span class="calc-prefix">$</span>
             <input class="calc-input" id="c-tp" type="number" inputmode="decimal" placeholder="0.00" min="0" step="any"/>
           </div>
         </div>
-        <div class="calc-divider"></div>
-        <div class="calc-field">
-          <label class="calc-label">Account Size</label>
+        <div class="calc-field" id="target2-field" style="display:none">
+          <label class="calc-label">Target 2</label>
           <div class="calc-input-wrap">
             <span class="calc-prefix">$</span>
-            <input class="calc-input" id="c-account" type="number" inputmode="decimal" placeholder="10 000" min="0" step="any"/>
+            <input class="calc-input" id="c-tp2" type="number" inputmode="decimal" placeholder="0.00" min="0" step="any"/>
           </div>
         </div>
-        <div class="calc-row-2">
-          <div class="calc-field">
-            <label class="calc-label">Risk</label>
-            <div class="calc-input-wrap">
-              <input class="calc-input" id="c-risk" type="number" inputmode="decimal" placeholder="1" min="0.01" max="100" step="any"/>
-              <span class="calc-suffix">%</span>
-            </div>
-          </div>
-          <div class="calc-field">
+        <button class="calc-expand-btn" id="target2-toggle">+ Target 2</button>
+
+        <!-- Advanced — Leverage -->
+        <button class="calc-advanced-toggle" id="adv-toggle">
+          <span>Advanced</span>
+          <span id="adv-arrow" class="calc-adv-arrow">▾</span>
+        </button>
+        <div id="adv-panel" style="display:none">
+          <div class="calc-field calc-adv-field">
             <label class="calc-label">Leverage <span class="calc-optional">optional</span></label>
             <div class="calc-input-wrap">
               <input class="calc-input" id="c-lev" type="number" inputmode="numeric" placeholder="1" min="1" max="125" step="1"/>
@@ -1063,47 +1095,53 @@ function buildCalc() {
         </div>
       </div>
 
+      <!-- Result -->
       <div class="calc-results card" id="calc-results">
         <div class="calc-result-empty" id="calc-empty">
-          <span id="calc-empty-msg">Enter entry price and stop loss to calculate</span>
+          <span id="calc-empty-msg">Enter entry and stop loss to calculate</span>
         </div>
         <div class="calc-result-rows" id="calc-rows" style="display:none">
           <div class="calc-result-row">
+            <span class="calc-result-label">Risk Amount</span>
+            <span class="calc-result-value red" id="r-loss">—</span>
+          </div>
+          <div class="calc-result-row">
             <span class="calc-result-label">Position Size</span>
             <span class="calc-result-value" id="r-size">—</span>
-          </div>
-          <div class="calc-result-row">
-            <span class="calc-result-label">Notional Value</span>
-            <span class="calc-result-value" id="r-notional">—</span>
-          </div>
-          <div class="calc-result-row">
-            <span class="calc-result-label">Max Loss</span>
-            <span class="calc-result-value red" id="r-loss">—</span>
           </div>
           <div class="calc-result-row" id="r-margin-row" style="display:none">
             <span class="calc-result-label">Margin Req.</span>
             <span class="calc-result-value" id="r-margin">—</span>
           </div>
           <div class="calc-result-row" id="r-reward-row" style="display:none">
-            <span class="calc-result-label">Reward</span>
+            <span class="calc-result-label">Reward T1</span>
             <span class="calc-result-value green" id="r-reward">—</span>
           </div>
+          <div class="calc-result-row" id="r-reward2-row" style="display:none">
+            <span class="calc-result-label">Reward T2</span>
+            <span class="calc-result-value green" id="r-reward2">—</span>
+          </div>
           <div class="calc-result-row" id="r-rr-row" style="display:none">
-            <span class="calc-result-label">Risk / Reward</span>
+            <span class="calc-result-label">R/R</span>
             <span class="calc-result-value gold" id="r-rr">—</span>
           </div>
         </div>
       </div>
+
+      <button class="calc-reset-btn" id="calc-reset">Reset</button>
 
       <div class="nav-spacer"></div>
     </div>`;
 
   let direction = "long";
 
+  // ── Calc logic ────────────────────────────────────────────────
   function calcUpdate() {
-    const entry   = parseFloat(document.getElementById("c-entry").value);
+    const entry1  = parseFloat(document.getElementById("c-entry").value);
+    const entry2v = parseFloat(document.getElementById("c-entry2").value);
     const sl      = parseFloat(document.getElementById("c-sl").value);
-    const tp      = parseFloat(document.getElementById("c-tp").value);
+    const tp1     = parseFloat(document.getElementById("c-tp").value);
+    const tp2v    = parseFloat(document.getElementById("c-tp2").value);
     const account = parseFloat(document.getElementById("c-account").value);
     const riskPct = parseFloat(document.getElementById("c-risk").value);
     const lev     = Math.max(1, parseFloat(document.getElementById("c-lev").value) || 1);
@@ -1114,17 +1152,19 @@ function buildCalc() {
     const slWrap   = document.getElementById("c-sl-wrap");
 
     function showEmpty(msg) {
-      emptyMsg.textContent    = msg;
-      empty.style.display     = "";
-      rows.style.display      = "none";
+      emptyMsg.textContent = msg;
+      empty.style.display  = "";
+      rows.style.display   = "none";
       slWrap.classList.remove("error");
     }
 
-    if (!entry || !sl || !account || !riskPct || entry <= 0 || sl <= 0 || account <= 0 || riskPct <= 0) {
-      showEmpty("Enter entry price and stop loss to calculate");
+    if (!entry1 || !sl || !account || !riskPct || entry1 <= 0 || sl <= 0 || account <= 0 || riskPct <= 0) {
+      showEmpty("Enter entry and stop loss to calculate");
       return;
     }
 
+    // Effective entry: average of Entry1 + Entry2 if both provided
+    const entry = (entry2v > 0) ? (entry1 + entry2v) / 2 : entry1;
     const riskPerUnit = direction === "long" ? entry - sl : sl - entry;
 
     if (riskPerUnit <= 0) {
@@ -1137,15 +1177,13 @@ function buildCalc() {
 
     slWrap.classList.remove("error");
 
-    // ── Core calculations ──────────────────────────────────────────
     const riskAmount = account * (riskPct / 100);
-    const posSize    = riskAmount / riskPerUnit;        // units
-    const notional   = posSize * entry;                 // USD notional
-    const marginReq  = notional / lev;                  // USD margin
+    const posSize    = riskAmount / riskPerUnit;
+    const notional   = posSize * entry;
+    const marginReq  = notional / lev;
 
-    document.getElementById("r-size").textContent    = calcFmtSize(posSize) + " units";
-    document.getElementById("r-notional").textContent = calcFmtUSD(notional);
-    document.getElementById("r-loss").textContent    = "−" + calcFmtUSD(riskAmount);
+    document.getElementById("r-loss").textContent = "−" + calcFmtUSD(riskAmount);
+    document.getElementById("r-size").textContent = calcFmtSize(posSize) + " units";
 
     const marginRow = document.getElementById("r-margin-row");
     if (lev > 1) {
@@ -1155,17 +1193,14 @@ function buildCalc() {
       marginRow.style.display = "none";
     }
 
-    // ── TP / Reward ───────────────────────────────────────────────
+    // Target 1
     const rewardRow = document.getElementById("r-reward-row");
     const rrRow     = document.getElementById("r-rr-row");
-
-    if (tp && tp > 0) {
-      const rewardPerUnit = direction === "long" ? tp - entry : entry - tp;
-      if (rewardPerUnit > 0) {
-        const rewardAmt = posSize * rewardPerUnit;
-        const rrRatio   = rewardPerUnit / riskPerUnit;
-        document.getElementById("r-reward").textContent = "+" + calcFmtUSD(rewardAmt);
-        document.getElementById("r-rr").textContent     = "1 : " + rrRatio.toFixed(2);
+    if (tp1 > 0) {
+      const rpu1 = direction === "long" ? tp1 - entry : entry - tp1;
+      if (rpu1 > 0) {
+        document.getElementById("r-reward").textContent = "+" + calcFmtUSD(posSize * rpu1);
+        document.getElementById("r-rr").textContent     = "1 : " + (rpu1 / riskPerUnit).toFixed(2);
         rewardRow.style.display = "";
         rrRow.style.display     = "";
       } else {
@@ -1175,6 +1210,20 @@ function buildCalc() {
     } else {
       rewardRow.style.display = "none";
       rrRow.style.display     = "none";
+    }
+
+    // Target 2
+    const reward2Row = document.getElementById("r-reward2-row");
+    if (tp2v > 0) {
+      const rpu2 = direction === "long" ? tp2v - entry : entry - tp2v;
+      if (rpu2 > 0) {
+        document.getElementById("r-reward2").textContent = "+" + calcFmtUSD(posSize * rpu2);
+        reward2Row.style.display = "";
+      } else {
+        reward2Row.style.display = "none";
+      }
+    } else {
+      reward2Row.style.display = "none";
     }
 
     empty.style.display = "none";
@@ -1191,8 +1240,75 @@ function buildCalc() {
     calcUpdate();
   });
 
-  // Live recalculation on every input
-  ["c-entry", "c-sl", "c-tp", "c-account", "c-risk", "c-lev"].forEach(id => {
+  // Risk % presets
+  document.getElementById("calc-presets").addEventListener("click", e => {
+    const btn = e.target.closest(".preset-btn");
+    if (!btn) return;
+    document.getElementById("c-risk").value = btn.dataset.val;
+    document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    calcUpdate();
+  });
+
+  // Risk input → sync active preset highlight
+  document.getElementById("c-risk").addEventListener("input", () => {
+    const val = document.getElementById("c-risk").value;
+    document.querySelectorAll(".preset-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.val === val);
+    });
+    calcUpdate();
+  });
+
+  // Entry 2 toggle
+  document.getElementById("entry2-toggle").addEventListener("click", () => {
+    const field = document.getElementById("entry2-field");
+    const btn   = document.getElementById("entry2-toggle");
+    const show  = field.style.display === "none";
+    field.style.display = show ? "" : "none";
+    btn.textContent     = show ? "− Entry 2" : "+ Entry 2";
+    if (!show) document.getElementById("c-entry2").value = "";
+    calcUpdate();
+  });
+
+  // Target 2 toggle
+  document.getElementById("target2-toggle").addEventListener("click", () => {
+    const field = document.getElementById("target2-field");
+    const btn   = document.getElementById("target2-toggle");
+    const show  = field.style.display === "none";
+    field.style.display = show ? "" : "none";
+    btn.textContent     = show ? "− Target 2" : "+ Target 2";
+    if (!show) document.getElementById("c-tp2").value = "";
+    calcUpdate();
+  });
+
+  // Advanced (Leverage) toggle
+  document.getElementById("adv-toggle").addEventListener("click", () => {
+    const panel = document.getElementById("adv-panel");
+    const arrow = document.getElementById("adv-arrow");
+    const show  = panel.style.display === "none";
+    panel.style.display = show ? "" : "none";
+    arrow.textContent   = show ? "▴" : "▾";
+  });
+
+  // Reset
+  document.getElementById("calc-reset").addEventListener("click", () => {
+    ["c-account","c-risk","c-entry","c-entry2","c-sl","c-tp","c-tp2","c-lev"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+    // Collapse optional fields
+    document.getElementById("entry2-field").style.display  = "none";
+    document.getElementById("entry2-toggle").textContent   = "+ Entry 2";
+    document.getElementById("target2-field").style.display = "none";
+    document.getElementById("target2-toggle").textContent  = "+ Target 2";
+    document.getElementById("adv-panel").style.display     = "none";
+    document.getElementById("adv-arrow").textContent       = "▾";
+    document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById("c-sl-wrap").classList.remove("error");
+    calcUpdate();
+  });
+
+  // Live recalculation
+  ["c-entry","c-entry2","c-sl","c-tp","c-tp2","c-account","c-lev"].forEach(id => {
     document.getElementById(id).addEventListener("input", calcUpdate);
   });
 }
