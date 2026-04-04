@@ -846,9 +846,24 @@ html, body {
   font-size: 12px;
   font-family: inherit;
   padding: 10px 8px;
-  cursor: not-allowed;
-  opacity: 0.5;
   text-align: center;
+  opacity: 0.38;
+  cursor: not-allowed;
+  transition: background 0.12s, opacity 0.12s, border-color 0.12s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.modal-action-btn:not([disabled]) {
+  opacity: 1;
+  cursor: pointer;
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.13);
+  color: var(--text-muted);
+}
+
+.modal-action-btn:not([disabled]):active {
+  background: rgba(255,255,255,0.11);
 }
 
 /* ===== SKELETON LOADER ===== */

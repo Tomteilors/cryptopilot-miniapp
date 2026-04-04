@@ -303,6 +303,52 @@ function signalCardHTML(s) {
 }
 
 /* ============================================================
+   CHART & EXCHANGE URL HELPERS
+   ============================================================ */
+const STABLES = new Set(["USDT", "USDC", "BUSD", "DAI", "TUSD", "FDUSD"]);
+
+function buildChartURL(exchange, symbol) {
+  const sym = symbol.toUpperCase();
+  if (STABLES.has(sym)) return null;               // no chart for stablecoins
+  // TradingView Binance perpetual — works for all exchanges (most liquid data)
+  return `https://www.tradingview.com/chart/?symbol=BINANCE:${sym}USDT.P`;
+}
+
+function buildExchangeURL(exchange, symbol) {
+  const ex  = (exchange || "").toLowerCase().replace(/[\s_-]+/g, "");
+  const sym = symbol.toUpperCase();
+  if (STABLES.has(sym) && (ex.includes("ethereum") || ex.includes("bnb") || ex.includes("chain"))) {
+    return null; // whale on-chain stablecoin — no market page useful
+  }
+  if (ex.includes("binance"))     return `https://www.binance.com/en/futures/${sym}USDT`;
+  if (ex.includes("bybit"))       return `https://www.bybit.com/trade/usdt/${sym}USDT`;
+  if (ex.includes("okx"))         return `https://www.okx.com/trade-swap/${sym.toLowerCase()}-usdt-swap`;
+  if (ex.includes("hyperliquid")) return `https://app.hyperliquid.xyz/trade/${sym}`;
+  return null; // chain or unknown
+}
+
+function openExternalLink(url) {
+  const tg = window.Telegram?.WebApp;
+  if (tg?.openLink) {
+    tg.openLink(url);
+  } else {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+}
+
+function applyModalBtn(btnId, url) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.onclick = null;
+  if (url) {
+    btn.disabled = false;
+    btn.onclick = () => openExternalLink(url);
+  } else {
+    btn.disabled = true;
+  }
+}
+
+/* ============================================================
    SIGNAL DETAIL MODAL
    ============================================================ */
 function fmtModalTime(ts) {
@@ -331,6 +377,9 @@ function openSignalModal(id) {
   document.getElementById("modal-exchange").textContent = s.exchange;
   document.getElementById("modal-time").textContent     = fmtModalTime(s.ts);
   document.getElementById("modal-body").textContent     = s.subtitle || s.body || "—";
+
+  applyModalBtn("modal-btn-chart",    buildChartURL(s.exchange, s.symbol));
+  applyModalBtn("modal-btn-exchange", buildExchangeURL(s.exchange, s.symbol));
 
   document.getElementById("signal-modal").classList.add("is-open");
 }
