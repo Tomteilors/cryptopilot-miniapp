@@ -229,7 +229,13 @@ function renderDashboard(d) {
     d.fear_greed >= 60 ? " up" :
     ""
   );
-  document.getElementById("fear-greed-label").textContent = d.fear_greed_label;
+  const fgLabelEl = document.getElementById("fear-greed-label");
+  fgLabelEl.textContent = d.fear_greed_label;
+  fgLabelEl.className = "metric-sub" + (
+    d.fear_greed <= 44 ? " fg-down" :
+    d.fear_greed >= 60 ? " fg-up" :
+    ""
+  );
 
   /* BTC Dominance */
   const domValEl = document.getElementById("btc-dom");

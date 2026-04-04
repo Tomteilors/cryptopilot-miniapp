@@ -308,8 +308,10 @@ html, body {
   color: var(--text-muted);
 }
 
-.metric-sub.up   { color: var(--green); }
-.metric-sub.down { color: var(--red); }
+.metric-sub.up      { color: var(--green); }
+.metric-sub.down    { color: var(--red); }
+.metric-sub.fg-up   { color: rgba(63, 185, 80, 0.65); }
+.metric-sub.fg-down { color: rgba(248, 81, 73, 0.65); }
 
 .metric-value.up   { color: var(--green); }
 .metric-value.down { color: var(--red); }
