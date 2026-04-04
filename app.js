@@ -219,14 +219,14 @@ function renderDashboard(d) {
     "bias"
   );
 
-  /* Fear & Greed — contrarian coloring: extreme fear = buy signal (green), extreme greed = sell signal (red) */
+  /* Fear & Greed — direct market state: fear = red, greed = green */
   const fgIconEl = document.querySelector(".metric-card:nth-child(1) .metric-icon");
   if (fgIconEl) fgIconEl.textContent = fgIcon(d.fear_greed);
   const fgValEl = document.getElementById("fear-greed");
   fgValEl.textContent = d.fear_greed;
   fgValEl.className = "metric-value" + (
-    d.fear_greed <= 25 ? " up" :
-    d.fear_greed >= 80 ? " down" :
+    d.fear_greed <= 44 ? " down" :
+    d.fear_greed >= 60 ? " up" :
     ""
   );
   document.getElementById("fear-greed-label").textContent = d.fear_greed_label;
