@@ -1087,8 +1087,9 @@ html, body {
 
 .rsi-screen-header {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
   padding: 0 0 10px;
 }
 

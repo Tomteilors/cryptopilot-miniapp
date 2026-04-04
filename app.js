@@ -625,8 +625,11 @@ function buildRSI() {
   panel.innerHTML = `
     <div class="rsi-screen">
       <div class="rsi-screen-header">
-        <span class="rsi-screen-title">RSI Scanner</span>
-        <span class="rsi-screen-sub">Oversold &amp; overbought signals</span>
+        <div>
+          <span class="rsi-screen-title">RSI Scanner</span>
+          <span class="rsi-screen-sub">Oversold &amp; overbought signals</span>
+        </div>
+        <span class="screener-updated" id="rsi-updated">Loading…</span>
       </div>
       <div class="rsi-controls">
         <div class="rsi-tf-row"   id="rsi-tf-row">${tfHTML}</div>
@@ -636,11 +639,12 @@ function buildRSI() {
       <div class="nav-spacer"></div>
     </div>`;
 
-  let activeTf   = "1h";
-  let activeZone = "all";
+  let activeTf    = "1h";
+  let activeZone  = "all";
+  let _rsiData    = {};   // tf → items array (live or mock)
 
   function renderRSI() {
-    const data = MOCK_RSI[activeTf] || [];
+    const data = _rsiData[activeTf] || MOCK_RSI[activeTf] || [];
 
     let filtered = activeZone === "all"
       ? data
@@ -684,6 +688,8 @@ function buildRSI() {
     document.querySelectorAll("#rsi-tf-row .rsi-tab").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     renderRSI();
+    // Fetch if not cached
+    if (!_rsiData[activeTf]) loadRSIData(activeTf);
   });
 
   // Zone filter click
@@ -696,7 +702,29 @@ function buildRSI() {
     renderRSI();
   });
 
+  async function loadRSIData(tf) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const r = await fetch(`${API_BASE}/api/rsi?tf=${tf}`, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const data = await r.json();
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        _rsiData[tf] = data.items;
+        if (activeTf === tf) renderRSI();
+        const updEl = document.getElementById("rsi-updated");
+        if (updEl) updEl.textContent = "Live · " + timeAgo(data.updated_at);
+      }
+    } catch (_) {
+      // fallback: MOCK_RSI already used in renderRSI()
+      const updEl = document.getElementById("rsi-updated");
+      if (updEl) updEl.textContent = "Offline · mock data";
+    }
+  }
+
   renderRSI();
+  loadRSIData(activeTf);
 }
 
 /* ============================================================
