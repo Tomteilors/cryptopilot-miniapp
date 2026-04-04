@@ -1293,6 +1293,37 @@ async function getMe() {
 }
 
 /* ============================================================
+   DASHBOARD — LIVE LAST ALERT
+   Перезаписывает захардкоженный last_alert из /api/dashboard
+   реальным первым алертом из /api/screener.
+   ============================================================ */
+async function loadDashboardAlert() {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+    const r = await fetch(`${API_BASE}/api/screener`, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    const alerts = data.alerts || [];
+    if (alerts.length === 0) return; // оставляем "No alerts yet"
+
+    const s = alerts[0]; // самый свежий
+    const kind = (s.kind || s.type || "").replace("vol", "volume"); // normalize vol → volume
+
+    const badge = document.getElementById("alert-badge");
+    if (!badge) return;
+    badge.textContent = s.title;
+    badge.className   = "alert-badge " + kind;
+    document.getElementById("alert-time").textContent  = timeAgo(s.ts);
+    document.getElementById("alert-title").textContent = s.symbol + " · " + s.exchange;
+    document.getElementById("alert-body").textContent  = s.subtitle || s.body || "—";
+  } catch (_) {
+    // нет данных — оставляем текущее состояние
+  }
+}
+
+/* ============================================================
    MAIN INIT
    ============================================================ */
 document.addEventListener("DOMContentLoaded", () => {
@@ -1313,6 +1344,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(data => {
       renderDashboard(data);
       setMarketStatus(true);
+      loadDashboardAlert(); // overlay last_alert с живыми данными screener
     })
     .catch(() => {
       // API недоступен — показываем MOCK с индикатором Offline
