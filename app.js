@@ -1,5 +1,64 @@
 /* ============================================================
-   MOCK DATA — структура соответствует ответу /api/dashboard
+   MOCK — SCREENER SIGNALS
+   Структура соответствует будущему /api/screener
+   type: volume | oi | funding | whale
+   severity: low | medium | high
+   direction: buy | sell | null
+   ============================================================ */
+const MOCK_SCREENER = [
+  {
+    id: 1, type: "volume", symbol: "BTC", exchange: "Binance",
+    title: "Volume Spike",
+    body: "$4.2M · 18% of 24h average",
+    direction: "buy", severity: "high",
+    ts: Math.floor(Date.now() / 1000) - 110,
+  },
+  {
+    id: 2, type: "oi", symbol: "ETH", exchange: "Bybit",
+    title: "OI Surge",
+    body: "+12.4% open interest in 15 min",
+    direction: null, severity: "medium",
+    ts: Math.floor(Date.now() / 1000) - 320,
+  },
+  {
+    id: 3, type: "whale", symbol: "USDT", exchange: "ETH chain",
+    title: "Whale Move",
+    body: "$2.1M — Binance → Unknown wallet",
+    direction: null, severity: "medium",
+    ts: Math.floor(Date.now() / 1000) - 490,
+  },
+  {
+    id: 4, type: "funding", symbol: "SOL", exchange: "Binance",
+    title: "Funding Spike",
+    body: "Rate +0.085% · 8.5× average",
+    direction: "sell", severity: "high",
+    ts: Math.floor(Date.now() / 1000) - 740,
+  },
+  {
+    id: 5, type: "volume", symbol: "SOL", exchange: "OKX",
+    title: "Volume Spike",
+    body: "$1.8M · 24% of 24h average",
+    direction: "sell", severity: "medium",
+    ts: Math.floor(Date.now() / 1000) - 920,
+  },
+  {
+    id: 6, type: "oi", symbol: "BTC", exchange: "Binance",
+    title: "OI Drop",
+    body: "−8.1% open interest in 10 min",
+    direction: null, severity: "low",
+    ts: Math.floor(Date.now() / 1000) - 1300,
+  },
+  {
+    id: 7, type: "whale", symbol: "BTC", exchange: "BTC chain",
+    title: "Whale Move",
+    body: "$5.4M — Unknown → Coinbase",
+    direction: "sell", severity: "high",
+    ts: Math.floor(Date.now() / 1000) - 1800,
+  },
+];
+
+/* ============================================================
+   MOCK DATA — DASHBOARD
    В Этапе 3 заменяется на fetch() без изменения renderDashboard
    ============================================================ */
 const MOCK = {
@@ -175,8 +234,8 @@ function setMarketStatus(online) {
    PLACEHOLDER SCREENS (tabs not yet implemented)
    ============================================================ */
 function buildPlaceholders() {
+  // screener excluded — has its own buildScreener()
   const defs = {
-    screener: { icon: "📡", title: "Screener",    sub: "Live alerts feed — coming soon" },
     rsi:      { icon: "📈", title: "RSI Scanner", sub: "Oversold / overbought signals — coming soon" },
     calc:     { icon: "🧮", title: "Calculator",  sub: "Position size & risk calc — coming soon" },
     settings: { icon: "⚙️", title: "Settings",    sub: "Wallets & thresholds — coming soon" }
@@ -191,6 +250,115 @@ function buildPlaceholders() {
         <div class="ph-sub">${cfg.sub}</div>
       </div>`;
   }
+}
+
+/* ============================================================
+   SCREENER — HELPERS
+   ============================================================ */
+function timeAgo(ts) {
+  const s = Math.floor(Date.now() / 1000) - ts;
+  if (s < 60)  return s + "s ago";
+  if (s < 3600) return Math.floor(s / 60) + "m ago";
+  return Math.floor(s / 3600) + "h ago";
+}
+
+const SIGNAL_ICONS = {
+  volume:  "⚡",
+  oi:      "📊",
+  funding: "💸",
+  whale:   "🐋",
+};
+
+const SEVERITY_LABEL = { high: "HIGH", medium: "MED", low: "LOW" };
+
+function signalCardHTML(s) {
+  const icon      = SIGNAL_ICONS[s.type] || "•";
+  const dirLabel  = s.direction === "buy"  ? '<span class="sig-dir buy">↑ BUY</span>'
+                  : s.direction === "sell" ? '<span class="sig-dir sell">↓ SELL</span>'
+                  : "";
+  const sevClass  = "sev-" + s.severity;
+
+  return `
+    <div class="signal-card card" data-type="${s.type}">
+      <div class="signal-top">
+        <span class="signal-icon">${icon}</span>
+        <span class="signal-symbol">${s.symbol}</span>
+        <span class="signal-title">${s.title}</span>
+        ${dirLabel}
+        <span class="signal-sev ${sevClass}">${SEVERITY_LABEL[s.severity]}</span>
+      </div>
+      <div class="signal-body">${s.body}</div>
+      <div class="signal-meta">
+        <span>${s.exchange}</span>
+        <span>${timeAgo(s.ts)}</span>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   SCREENER — BUILD & RENDER
+   ============================================================ */
+let _activeFilter = "all";
+
+function renderSignals(signals) {
+  const filtered = _activeFilter === "all"
+    ? signals
+    : signals.filter(s => s.type === _activeFilter);
+
+  const list = document.getElementById("signal-list");
+  if (!list) return;
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">No signals</div>
+        <div class="empty-sub">Nothing matches the current filter</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(signalCardHTML).join("");
+}
+
+function buildScreener() {
+  const panel = document.getElementById("tab-screener");
+  if (!panel) return;
+
+  const filters = [
+    { key: "all",     label: "All" },
+    { key: "volume",  label: "⚡ Volume" },
+    { key: "oi",      label: "📊 OI" },
+    { key: "funding", label: "💸 Funding" },
+    { key: "whale",   label: "🐋 Whale" },
+  ];
+
+  const filterHTML = filters.map(f =>
+    `<button class="filter-tab${f.key === _activeFilter ? " active" : ""}" data-filter="${f.key}">${f.label}</button>`
+  ).join("");
+
+  panel.innerHTML = `
+    <div class="screener-header">
+      <span class="screener-title">Screener</span>
+      <span class="screener-updated" id="screener-updated">Mock data</span>
+    </div>
+    <div class="screener-filters" id="screener-filters">
+      ${filterHTML}
+    </div>
+    <div class="signal-list" id="signal-list"></div>
+    <div class="nav-spacer"></div>`;
+
+  // Filter tab click handlers
+  document.getElementById("screener-filters").addEventListener("click", e => {
+    const btn = e.target.closest(".filter-tab");
+    if (!btn) return;
+    _activeFilter = btn.dataset.filter;
+    document.querySelectorAll(".filter-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderSignals(MOCK_SCREENER);
+  });
+
+  renderSignals(MOCK_SCREENER);
 }
 
 /* ============================================================
@@ -308,6 +476,7 @@ document.addEventListener("DOMContentLoaded", () => {
   authTelegram(); // non-blocking: validates signature, logs to console
   getMe();        // non-blocking: upserts user in backend, logs profile
   buildPlaceholders();
+  buildScreener();
   initTabs();
 
   setLoadingState(true);

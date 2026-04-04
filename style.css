@@ -439,6 +439,154 @@ html, body {
   color: var(--text-dim);
 }
 
+/* ===== SCREENER ===== */
+
+.screener-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 4px 0 10px;
+}
+
+.screener-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.screener-updated {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Filter tabs — horizontal scroll */
+.screener-filters {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.screener-filters::-webkit-scrollbar { display: none; }
+
+.filter-tab {
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 5px 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.filter-tab.active {
+  background: var(--gold-dim);
+  border-color: var(--gold-border);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* Signal cards */
+.signal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.signal-card {
+  padding: 12px 14px;
+  background: var(--bg-card);
+}
+
+.signal-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+
+.signal-icon {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.signal-symbol {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.signal-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  flex: 1;
+  min-width: 0;
+}
+
+/* Direction badge */
+.sig-dir {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.sig-dir.buy  { background: rgba(63,185,80,0.14); color: var(--green); }
+.sig-dir.sell { background: rgba(248,81,73,0.14);  color: var(--red); }
+
+/* Severity badge */
+.signal-sev {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.4px;
+  flex-shrink: 0;
+}
+
+.sev-high   { background: rgba(248,81,73,0.14);   color: var(--red);   }
+.sev-medium { background: rgba(245,196,81,0.14);  color: var(--gold);  }
+.sev-low    { background: rgba(125,133,144,0.14); color: var(--text-muted); }
+
+.signal-body {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 7px;
+  line-height: 1.4;
+}
+
+.signal-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  gap: 8px;
+}
+
+.empty-icon  { font-size: 36px; opacity: 0.4; }
+.empty-title { font-size: 15px; font-weight: 600; color: var(--text-muted); }
+.empty-sub   { font-size: 13px; color: var(--text-dim); text-align: center; }
+
 /* ===== SKELETON LOADER ===== */
 .skeleton {
   background: linear-gradient(90deg, var(--bg-card2) 25%, rgba(255,255,255,0.04) 50%, var(--bg-card2) 75%);
