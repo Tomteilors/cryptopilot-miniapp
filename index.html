@@ -123,6 +123,43 @@
 
   </main>
 
+  <!-- SIGNAL DETAIL MODAL -->
+  <div id="signal-modal" class="signal-modal-overlay" role="dialog" aria-modal="true">
+    <div class="signal-modal" id="signal-modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-top">
+        <div class="modal-symbol-row">
+          <span class="modal-icon" id="modal-icon"></span>
+          <span class="modal-symbol" id="modal-symbol"></span>
+          <span class="modal-badges" id="modal-badges"></span>
+        </div>
+        <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-type" id="modal-type"></div>
+      <div class="modal-divider"></div>
+      <div class="modal-details">
+        <div class="modal-row">
+          <span class="modal-row-label">Exchange</span>
+          <span class="modal-row-value" id="modal-exchange"></span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-row-label">Time</span>
+          <span class="modal-row-value" id="modal-time"></span>
+        </div>
+        <div class="modal-row modal-row-body">
+          <span class="modal-row-label">Details</span>
+          <span class="modal-row-value" id="modal-body"></span>
+        </div>
+      </div>
+      <div class="modal-divider"></div>
+      <!-- Action block — placeholder for future: Open chart, View exchange -->
+      <div class="modal-actions">
+        <button class="modal-action-btn" disabled>📈 Open Chart</button>
+        <button class="modal-action-btn" disabled>🔗 View Exchange</button>
+      </div>
+    </div>
+  </div>
+
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-item active" data-tab="dashboard">

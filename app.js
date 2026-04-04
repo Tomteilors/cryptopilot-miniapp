@@ -303,6 +303,57 @@ function signalCardHTML(s) {
 }
 
 /* ============================================================
+   SIGNAL DETAIL MODAL
+   ============================================================ */
+function fmtModalTime(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+    + " · " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function openSignalModal(id) {
+  const s = _screenerSignals.find(x => String(x.id) === String(id));
+  if (!s) return;
+
+  const kind     = s.kind || s.type;
+  const icon     = SIGNAL_ICONS[kind] || "•";
+  const dirLabel = s.direction === "buy"  ? '<span class="sig-dir buy">↑ BUY</span>'
+                 : s.direction === "sell" ? '<span class="sig-dir sell">↓ SELL</span>'
+                 : "";
+  const sevClass = "sev-" + s.severity;
+  const sevLabel = SEVERITY_LABEL[s.severity] || s.severity?.toUpperCase() || "";
+
+  document.getElementById("modal-icon").textContent   = icon;
+  document.getElementById("modal-symbol").textContent = s.symbol;
+  document.getElementById("modal-badges").innerHTML   = dirLabel
+    + `<span class="signal-sev ${sevClass}">${sevLabel}</span>`;
+  document.getElementById("modal-type").textContent     = s.title;
+  document.getElementById("modal-exchange").textContent = s.exchange;
+  document.getElementById("modal-time").textContent     = fmtModalTime(s.ts);
+  document.getElementById("modal-body").textContent     = s.subtitle || s.body || "—";
+
+  document.getElementById("signal-modal").classList.add("is-open");
+}
+
+function closeSignalModal() {
+  document.getElementById("signal-modal").classList.remove("is-open");
+}
+
+function initModal() {
+  const overlay = document.getElementById("signal-modal");
+  // Close on overlay tap (outside sheet)
+  overlay.addEventListener("click", e => {
+    if (e.target === overlay) closeSignalModal();
+  });
+  // Close button
+  document.getElementById("modal-close").addEventListener("click", closeSignalModal);
+  // Escape key (desktop / Telegram PC)
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeSignalModal();
+  });
+}
+
+/* ============================================================
    SCREENER — BUILD & RENDER
    ============================================================ */
 let _activeFilter = "all";
@@ -394,6 +445,13 @@ function buildScreener() {
     document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     renderSignals(_screenerSignals);
+  });
+
+  // Card tap → detail modal (event delegation)
+  document.getElementById("signal-list").addEventListener("click", e => {
+    const card = e.target.closest(".signal-card");
+    if (!card) return;
+    openSignalModal(card.dataset.id);
   });
 
   renderSignals(_screenerSignals);
@@ -545,6 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
   getMe();        // non-blocking: upserts user in backend, logs profile
   buildPlaceholders();
   buildScreener();
+  initModal();
   initTabs();
 
   setLoadingState(true);
