@@ -272,26 +272,20 @@ function renderDashboard(d) {
    ============================================================ */
 function setLoadingState(on) {
   document.querySelector(".scroll-area").classList.toggle("is-loading", on);
-  if (on) document.getElementById("status-label").textContent = "Loading…";
 }
 
 /* ============================================================
-   MARKET STATUS DOT
+   MARKET STATUS PILL
    ============================================================ */
 function setMarketStatus(online) {
-  const label = document.getElementById("status-label");
-  const dot   = document.querySelector(".status-dot");
+  const pill = document.getElementById("status-pill");
+  if (!pill) return;
   if (online) {
-    const now = new Date();
-    const hh  = now.getHours().toString().padStart(2, "0");
-    const mm  = now.getMinutes().toString().padStart(2, "0");
-    label.textContent  = "Live · " + hh + ":" + mm;
-    dot.style.background = "var(--green)";
-    dot.style.boxShadow  = "0 0 5px var(--green)";
+    pill.textContent = "ON";
+    pill.classList.remove("offline");
   } else {
-    label.textContent  = "Offline";
-    dot.style.background = "var(--red)";
-    dot.style.boxShadow  = "0 0 5px var(--red)";
+    pill.textContent = "OFF";
+    pill.classList.add("offline");
   }
 }
 
@@ -1253,8 +1247,10 @@ function initTelegram() {
   if (!tg) return;
   tg.ready();
   tg.expand();
-  tg.setBackgroundColor("#0d1117");
-  tg.setHeaderColor("#0d1117");
+  if (typeof tg.disableVerticalSwipes === "function") tg.disableVerticalSwipes();
+  if (typeof tg.requestFullscreen    === "function") tg.requestFullscreen();
+  if (typeof tg.setBackgroundColor   === "function") tg.setBackgroundColor("#0d1117");
+  if (typeof tg.setHeaderColor       === "function") tg.setHeaderColor("#0d1117");
 }
 
 /* ============================================================

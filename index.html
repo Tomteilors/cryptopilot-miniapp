@@ -6,7 +6,7 @@
   <title>CryptoPilot</title>
   <link rel="icon" type="image/png" sizes="32x32" href="assets/logo/logo-32.png"/>
   <link rel="apple-touch-icon" href="assets/logo/logo-128.png"/>
-  <link rel="stylesheet" href="style.css?v=20260404-6"/>
+  <link rel="stylesheet" href="style.css?v=20260404-7"/>
   <!-- Telegram Mini App SDK — must load before app.js -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -21,15 +21,11 @@
     <div class="header-center">
       <img class="logo-img" src="assets/logo/logo-64.png" alt="CryptoPilot"/>
       <span class="logo-text">CryptoPilot</span>
+      <span class="status-pill" id="status-pill">ON</span>
     </div>
 
-    <!-- right: market status -->
-    <div class="header-right">
-      <span class="market-status" id="market-status">
-        <span class="status-dot"></span>
-        <span id="status-label">Loading…</span>
-      </span>
-    </div>
+    <!-- right: reserved (keeps flex balance) -->
+    <div class="header-right"></div>
   </header>
 
   <!-- SCROLL AREA -->
@@ -194,6 +190,6 @@
     </button>
   </nav>
 
-  <script src="app.js?v=20260404-6"></script>
+  <script src="app.js?v=20260404-7"></script>
 </body>
 </html>
