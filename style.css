@@ -51,11 +51,22 @@ html, body {
 }
 
 .header-left {
+  /* placeholder — keeps flex balance, reserved for future left controls */
+  min-width: 40px;
+  flex-shrink: 0;
+}
+
+/* Logo: абсолютно по центру экрана, независимо от ширины left/right */
+.header-center {
+  position: absolute;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + var(--header-h) / 2);
+  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   gap: 9px;
-  min-width: 0;
-  flex-shrink: 1;
+  white-space: nowrap;
+  pointer-events: none; /* клики проходят насквозь */
 }
 
 .logo-img {

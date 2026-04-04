@@ -14,10 +14,16 @@
 
   <!-- HEADER -->
   <header class="header">
-    <div class="header-left">
+    <!-- left: reserved for future controls (e.g. back button) -->
+    <div class="header-left"></div>
+
+    <!-- center: absolutely positioned so it's always screen-center -->
+    <div class="header-center">
       <img class="logo-img" src="assets/logo/logo-64.png" alt="CryptoPilot"/>
       <span class="logo-text">CryptoPilot</span>
     </div>
+
+    <!-- right: market status -->
     <div class="header-right">
       <span class="market-status" id="market-status">
         <span class="status-dot"></span>
