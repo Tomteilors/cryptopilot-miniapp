@@ -117,8 +117,6 @@ const MOCK = {
 
   long_short_ratio: 1.24,
 
-  etf_flow_m:       312,      // BTC ETF net flow today, $M
-
   last_alert: {
     type:  "volume",          // volume | whale | liq | oi
     badge: "Volume Spike",
@@ -257,12 +255,7 @@ function renderDashboard(d) {
   document.getElementById("ls-label").textContent =
     d.long_short_ratio >= 1 ? "Longs dominate" : "Shorts dominate";
 
-  /* ETF Flow */
-  const flow = d.etf_flow_m;
-  const etfEl = document.getElementById("etf-flow");
-  etfEl.textContent = (flow >= 0 ? "+" : "") + fmtMoney(flow);
-  etfEl.className = "metric-value" + (flow > 0 ? " up" : flow < 0 ? " down" : "");
-  document.getElementById("etf-sub").textContent = "Net inflow today";
+  /* CME Gap — populated separately by loadCmeGap() */
 
   /* Last Alert */
   const al = d.last_alert;
@@ -1299,6 +1292,54 @@ async function getMe() {
 }
 
 /* ============================================================
+   DASHBOARD — CME GAP CARD
+   Fetches /api/cme_gap independently (not part of /api/dashboard).
+   ============================================================ */
+async function loadCmeGap() {
+  const statusEl = document.getElementById("cme-status");
+  const subEl    = document.getElementById("cme-sub");
+  if (!statusEl) return;
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const r = await fetch(`${API_BASE}/api/cme_gap`, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+
+    let valueText, subText, colorClass = "";
+
+    if (d.status === "open") {
+      const arrow = d.direction === "up" ? "↑" : "↓";
+      valueText  = arrow + " Open";
+      colorClass = d.direction === "up" ? " up" : " down";
+      const sign = d.direction === "up" ? "+" : "−";
+      const size = d.gap_size ? sign + "$" + Math.round(d.gap_size).toLocaleString("en-US") : "";
+      const pct  = d.gap_pct  ? " (" + d.gap_pct + "%)" : "";
+      subText = size + pct || "—";
+    } else if (d.status === "closed") {
+      valueText = "Closed";
+      subText   = "Gap filled ✓";
+    } else if (d.status === "no_gap") {
+      valueText = "No gap";
+      subText   = "< $50 diff";
+    } else {
+      valueText = "—";
+      subText   = "No data";
+    }
+
+    statusEl.textContent = valueText;
+    statusEl.className   = "metric-value" + colorClass;
+    subEl.textContent    = subText;
+  } catch (_) {
+    statusEl.textContent = "—";
+    statusEl.className   = "metric-value";
+    subEl.textContent    = "Unavailable";
+  }
+}
+
+/* ============================================================
    DASHBOARD — LIVE LAST ALERT
    Перезаписывает захардкоженный last_alert из /api/dashboard
    реальным первым алертом из /api/screener.
@@ -1350,6 +1391,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(data => {
       renderDashboard(data);
       setMarketStatus(true);
+      loadCmeGap();         // CME Gap card (separate endpoint)
       loadDashboardAlert(); // overlay last_alert с живыми данными screener
     })
     .catch(() => {
