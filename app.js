@@ -237,7 +237,6 @@ function buildPlaceholders() {
   // screener excluded — has its own buildScreener()
   const defs = {
     rsi:      { icon: "📈", title: "RSI Scanner", sub: "Oversold / overbought signals — coming soon" },
-    calc:     { icon: "🧮", title: "Calculator",  sub: "Position size & risk calc — coming soon" },
     settings: { icon: "⚙️", title: "Settings",    sub: "Wallets & thresholds — coming soon" }
   };
   for (const [tab, cfg] of Object.entries(defs)) {
@@ -537,6 +536,223 @@ async function loadScreenerData() {
 }
 
 /* ============================================================
+   CALC — FORMATTERS
+   ============================================================ */
+function calcFmtUSD(n) {
+  if (n >= 1_000_000) return "$" + (n / 1_000_000).toFixed(2) + "M";
+  if (n >= 1_000)     return "$" + n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  return "$" + n.toFixed(2);
+}
+
+function calcFmtSize(n) {
+  if (n >= 1_000) return n.toLocaleString("en-US", { maximumFractionDigits: 4 });
+  if (n >= 1)     return n.toFixed(4);
+  if (n >= 0.001) return n.toFixed(6);
+  return n.toExponential(3);
+}
+
+/* ============================================================
+   CALC SCREEN
+   ============================================================ */
+function buildCalc() {
+  const panel = document.getElementById("tab-calc");
+  if (!panel) return;
+
+  panel.innerHTML = `
+    <div class="calc-screen">
+      <div class="calc-header">
+        <span class="calc-title">Position Calc</span>
+        <span class="calc-subtitle">Size your trade by risk</span>
+      </div>
+
+      <div class="calc-segment" id="calc-segment">
+        <button class="seg-btn active" data-dir="long">↑ Long</button>
+        <button class="seg-btn" data-dir="short">↓ Short</button>
+      </div>
+
+      <div class="calc-inputs card">
+        <div class="calc-field">
+          <label class="calc-label">Entry Price</label>
+          <div class="calc-input-wrap">
+            <span class="calc-prefix">$</span>
+            <input class="calc-input" id="c-entry" type="number" inputmode="decimal" placeholder="0.00" min="0" step="any"/>
+          </div>
+        </div>
+        <div class="calc-field">
+          <label class="calc-label">Stop Loss</label>
+          <div class="calc-input-wrap" id="c-sl-wrap">
+            <span class="calc-prefix">$</span>
+            <input class="calc-input" id="c-sl" type="number" inputmode="decimal" placeholder="0.00" min="0" step="any"/>
+          </div>
+        </div>
+        <div class="calc-field">
+          <label class="calc-label">Take Profit <span class="calc-optional">optional</span></label>
+          <div class="calc-input-wrap">
+            <span class="calc-prefix">$</span>
+            <input class="calc-input" id="c-tp" type="number" inputmode="decimal" placeholder="0.00" min="0" step="any"/>
+          </div>
+        </div>
+        <div class="calc-divider"></div>
+        <div class="calc-field">
+          <label class="calc-label">Account Size</label>
+          <div class="calc-input-wrap">
+            <span class="calc-prefix">$</span>
+            <input class="calc-input" id="c-account" type="number" inputmode="decimal" placeholder="10 000" min="0" step="any"/>
+          </div>
+        </div>
+        <div class="calc-row-2">
+          <div class="calc-field">
+            <label class="calc-label">Risk</label>
+            <div class="calc-input-wrap">
+              <input class="calc-input" id="c-risk" type="number" inputmode="decimal" placeholder="1" min="0.01" max="100" step="any"/>
+              <span class="calc-suffix">%</span>
+            </div>
+          </div>
+          <div class="calc-field">
+            <label class="calc-label">Leverage <span class="calc-optional">optional</span></label>
+            <div class="calc-input-wrap">
+              <input class="calc-input" id="c-lev" type="number" inputmode="numeric" placeholder="1" min="1" max="125" step="1"/>
+              <span class="calc-suffix">×</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="calc-results card" id="calc-results">
+        <div class="calc-result-empty" id="calc-empty">
+          <span id="calc-empty-msg">Enter entry price and stop loss to calculate</span>
+        </div>
+        <div class="calc-result-rows" id="calc-rows" style="display:none">
+          <div class="calc-result-row">
+            <span class="calc-result-label">Position Size</span>
+            <span class="calc-result-value" id="r-size">—</span>
+          </div>
+          <div class="calc-result-row">
+            <span class="calc-result-label">Notional Value</span>
+            <span class="calc-result-value" id="r-notional">—</span>
+          </div>
+          <div class="calc-result-row">
+            <span class="calc-result-label">Max Loss</span>
+            <span class="calc-result-value red" id="r-loss">—</span>
+          </div>
+          <div class="calc-result-row" id="r-margin-row" style="display:none">
+            <span class="calc-result-label">Margin Req.</span>
+            <span class="calc-result-value" id="r-margin">—</span>
+          </div>
+          <div class="calc-result-row" id="r-reward-row" style="display:none">
+            <span class="calc-result-label">Reward</span>
+            <span class="calc-result-value green" id="r-reward">—</span>
+          </div>
+          <div class="calc-result-row" id="r-rr-row" style="display:none">
+            <span class="calc-result-label">Risk / Reward</span>
+            <span class="calc-result-value gold" id="r-rr">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-spacer"></div>
+    </div>`;
+
+  let direction = "long";
+
+  function calcUpdate() {
+    const entry   = parseFloat(document.getElementById("c-entry").value);
+    const sl      = parseFloat(document.getElementById("c-sl").value);
+    const tp      = parseFloat(document.getElementById("c-tp").value);
+    const account = parseFloat(document.getElementById("c-account").value);
+    const riskPct = parseFloat(document.getElementById("c-risk").value);
+    const lev     = Math.max(1, parseFloat(document.getElementById("c-lev").value) || 1);
+
+    const empty    = document.getElementById("calc-empty");
+    const emptyMsg = document.getElementById("calc-empty-msg");
+    const rows     = document.getElementById("calc-rows");
+    const slWrap   = document.getElementById("c-sl-wrap");
+
+    function showEmpty(msg) {
+      emptyMsg.textContent    = msg;
+      empty.style.display     = "";
+      rows.style.display      = "none";
+      slWrap.classList.remove("error");
+    }
+
+    if (!entry || !sl || !account || !riskPct || entry <= 0 || sl <= 0 || account <= 0 || riskPct <= 0) {
+      showEmpty("Enter entry price and stop loss to calculate");
+      return;
+    }
+
+    const riskPerUnit = direction === "long" ? entry - sl : sl - entry;
+
+    if (riskPerUnit <= 0) {
+      slWrap.classList.add("error");
+      showEmpty(direction === "long"
+        ? "Stop loss must be below entry for Long"
+        : "Stop loss must be above entry for Short");
+      return;
+    }
+
+    slWrap.classList.remove("error");
+
+    // ── Core calculations ──────────────────────────────────────────
+    const riskAmount = account * (riskPct / 100);
+    const posSize    = riskAmount / riskPerUnit;        // units
+    const notional   = posSize * entry;                 // USD notional
+    const marginReq  = notional / lev;                  // USD margin
+
+    document.getElementById("r-size").textContent    = calcFmtSize(posSize) + " units";
+    document.getElementById("r-notional").textContent = calcFmtUSD(notional);
+    document.getElementById("r-loss").textContent    = "−" + calcFmtUSD(riskAmount);
+
+    const marginRow = document.getElementById("r-margin-row");
+    if (lev > 1) {
+      document.getElementById("r-margin").textContent = calcFmtUSD(marginReq);
+      marginRow.style.display = "";
+    } else {
+      marginRow.style.display = "none";
+    }
+
+    // ── TP / Reward ───────────────────────────────────────────────
+    const rewardRow = document.getElementById("r-reward-row");
+    const rrRow     = document.getElementById("r-rr-row");
+
+    if (tp && tp > 0) {
+      const rewardPerUnit = direction === "long" ? tp - entry : entry - tp;
+      if (rewardPerUnit > 0) {
+        const rewardAmt = posSize * rewardPerUnit;
+        const rrRatio   = rewardPerUnit / riskPerUnit;
+        document.getElementById("r-reward").textContent = "+" + calcFmtUSD(rewardAmt);
+        document.getElementById("r-rr").textContent     = "1 : " + rrRatio.toFixed(2);
+        rewardRow.style.display = "";
+        rrRow.style.display     = "";
+      } else {
+        rewardRow.style.display = "none";
+        rrRow.style.display     = "none";
+      }
+    } else {
+      rewardRow.style.display = "none";
+      rrRow.style.display     = "none";
+    }
+
+    empty.style.display = "none";
+    rows.style.display  = "";
+  }
+
+  // Direction toggle
+  document.getElementById("calc-segment").addEventListener("click", e => {
+    const btn = e.target.closest(".seg-btn");
+    if (!btn) return;
+    direction = btn.dataset.dir;
+    document.querySelectorAll(".seg-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    calcUpdate();
+  });
+
+  // Live recalculation on every input
+  ["c-entry", "c-sl", "c-tp", "c-account", "c-risk", "c-lev"].forEach(id => {
+    document.getElementById(id).addEventListener("input", calcUpdate);
+  });
+}
+
+/* ============================================================
    TAB NAVIGATION
    ============================================================ */
 function initTabs() {
@@ -652,6 +868,7 @@ document.addEventListener("DOMContentLoaded", () => {
   getMe();        // non-blocking: upserts user in backend, logs profile
   buildPlaceholders();
   buildScreener();
+  buildCalc();
   initModal();
   initTabs();
 

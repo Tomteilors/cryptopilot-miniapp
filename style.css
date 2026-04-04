@@ -866,6 +866,219 @@ html, body {
   background: rgba(255,255,255,0.11);
 }
 
+/* ===== CALC SCREEN ===== */
+
+.calc-screen {
+  padding-top: 4px;
+}
+
+.calc-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 0 12px;
+}
+
+.calc-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.calc-subtitle {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Long / Short segmented control */
+.calc-segment {
+  display: flex;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 3px;
+  margin-bottom: 10px;
+}
+
+.seg-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 7px 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, color 0.15s;
+}
+
+.seg-btn.active[data-dir="long"]  {
+  background: rgba(63,185,80,0.20);
+  color: #4ade80;
+}
+
+.seg-btn.active[data-dir="short"] {
+  background: rgba(248,81,73,0.20);
+  color: #ff6b62;
+}
+
+/* Inputs card */
+.calc-inputs {
+  margin-bottom: 10px;
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.calc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-bottom: 10px;
+}
+
+.calc-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.calc-optional {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.calc-input-wrap {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 0 10px;
+  transition: border-color 0.15s;
+}
+
+.calc-input-wrap:focus-within {
+  border-color: rgba(245,196,81,0.50);
+}
+
+.calc-prefix,
+.calc-suffix {
+  font-size: 14px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.calc-prefix { padding-right: 4px; }
+.calc-suffix { padding-left: 4px; }
+
+.calc-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 500;
+  padding: 10px 0;
+  min-width: 0;
+  -webkit-appearance: none;
+}
+
+.calc-input::placeholder {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+/* Remove number input arrows */
+.calc-input::-webkit-outer-spin-button,
+.calc-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.calc-input[type=number] { -moz-appearance: textfield; }
+
+/* Error state */
+.calc-input-wrap.error {
+  border-color: rgba(248,81,73,0.45);
+}
+
+.calc-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 2px 0 10px;
+}
+
+/* 2-column row */
+.calc-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Results card */
+.calc-results {
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.calc-result-empty {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+  padding: 6px 0;
+}
+
+.calc-result-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.calc-result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.calc-result-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.calc-result-row:first-child {
+  padding-top: 0;
+}
+
+.calc-result-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.calc-result-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: right;
+}
+
+.calc-result-value.red   { color: var(--red); }
+.calc-result-value.green { color: var(--green); }
+.calc-result-value.gold  { color: var(--gold); }
+
 /* ===== SKELETON LOADER ===== */
 .skeleton {
   background: linear-gradient(90deg, var(--bg-card2) 25%, rgba(255,255,255,0.04) 50%, var(--bg-card2) 75%);
