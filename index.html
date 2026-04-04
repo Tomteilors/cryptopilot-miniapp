@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>CryptoPilot</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/logo/logo-32.png"/>
+  <link rel="apple-touch-icon" href="assets/logo/logo-128.png"/>
+  <link rel="stylesheet" href="style.css"/>
+  <!-- Telegram Mini App SDK — must load before app.js -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <img class="logo-img" src="assets/logo/logo-64.png" alt="CryptoPilot"/>
+      <span class="logo-text">CryptoPilot</span>
+    </div>
+    <div class="header-right">
+      <span class="market-status" id="market-status">
+        <span class="status-dot"></span>
+        <span id="status-label">Loading…</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- SCROLL AREA -->
+  <main class="scroll-area">
+
+  <!-- DASHBOARD TAB -->
+  <div id="tab-dashboard" class="tab-panel active">
+
+    <!-- MAIN PRICE CARD -->
+    <section class="main-card card">
+      <div class="main-card-top">
+        <div class="price-block">
+          <div class="price-label">Bitcoin</div>
+          <div class="price-value" id="btc-price">—</div>
+          <div class="price-change" id="btc-change">—</div>
+        </div>
+        <div class="divider-v"></div>
+        <div class="price-block">
+          <div class="price-label">Ethereum</div>
+          <div class="price-value" id="eth-price">—</div>
+          <div class="price-change" id="eth-change">—</div>
+        </div>
+      </div>
+      <div class="main-card-bottom">
+        <div class="stat-item">
+          <span class="stat-label">Funding</span>
+          <span class="stat-value" id="funding">—</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Open Interest</span>
+          <span class="stat-value" id="oi">—</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Bias</span>
+          <span class="stat-value bias" id="bias">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- METRIC CARDS GRID -->
+    <section class="metrics-grid">
+
+      <div class="metric-card card">
+        <div class="metric-icon">😨</div>
+        <div class="metric-label">Fear & Greed</div>
+        <div class="metric-value" id="fear-greed">—</div>
+        <div class="metric-sub" id="fear-greed-label">—</div>
+      </div>
+
+      <div class="metric-card card">
+        <div class="metric-icon">₿</div>
+        <div class="metric-label">BTC Dominance</div>
+        <div class="metric-value" id="btc-dom">—</div>
+        <div class="metric-sub" id="btc-dom-delta">—</div>
+      </div>
+
+      <div class="metric-card card">
+        <div class="metric-icon">⚖️</div>
+        <div class="metric-label">Long / Short</div>
+        <div class="metric-value" id="ls-ratio">—</div>
+        <div class="metric-sub" id="ls-label">—</div>
+      </div>
+
+      <div class="metric-card card">
+        <div class="metric-icon">🏦</div>
+        <div class="metric-label">ETF Flow</div>
+        <div class="metric-value" id="etf-flow">—</div>
+        <div class="metric-sub" id="etf-sub">—</div>
+      </div>
+
+    </section>
+
+    <!-- LAST ALERT CARD -->
+    <section class="alert-card card" id="alert-card">
+      <div class="alert-header">
+        <span class="alert-badge" id="alert-badge">—</span>
+        <span class="alert-time" id="alert-time">—</span>
+      </div>
+      <div class="alert-title" id="alert-title">—</div>
+      <div class="alert-body" id="alert-body">—</div>
+    </section>
+
+    <div class="nav-spacer"></div>
+  </div><!-- /tab-dashboard -->
+
+  <!-- OTHER TAB PANELS (populated by app.js) -->
+  <div id="tab-screener" class="tab-panel"></div>
+  <div id="tab-rsi"      class="tab-panel"></div>
+  <div id="tab-calc"     class="tab-panel"></div>
+  <div id="tab-settings" class="tab-panel"></div>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-item" data-tab="screener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Screener</span>
+    </button>
+    <button class="nav-item" data-tab="rsi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 17 7 11 11 14 15 7 21 7"/><line x1="3" y1="21" x2="21" y2="21"/></svg>
+      <span>RSI</span>
+    </button>
+    <button class="nav-item" data-tab="calc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
+      <span>Calc</span>
+    </button>
+    <button class="nav-item" data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
