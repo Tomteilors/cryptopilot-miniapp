@@ -263,12 +263,50 @@ async function authTelegram() {
   }
 }
 
+async function getMe() {
+  const tg = window.Telegram?.WebApp;
+  if (!tg || !tg.initData) {
+    console.log("[me] No initData — skipping");
+    return null;
+  }
+
+  try {
+    const r = await fetch(`${API_BASE}/api/me`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ init_data: tg.initData }),
+    });
+    const data = await r.json();
+
+    if (r.ok && data.ok) {
+      console.log("[me] 👤 User profile:", {
+        id:          data.telegram_id,
+        name:        data.first_name,
+        username:    data.username || "(none)",
+        lang:        data.language_code,
+        first_seen:  new Date(data.first_seen_at * 1000).toLocaleString(),
+        last_seen:   new Date(data.last_seen_at  * 1000).toLocaleString(),
+        is_premium:  data.is_premium,
+        is_admin:    data.is_admin,
+      });
+      return data;
+    } else {
+      console.warn("[me] ❌ Failed:", data.detail);
+      return null;
+    }
+  } catch (err) {
+    console.warn("[me] ⚠️ Request failed:", err.message);
+    return null;
+  }
+}
+
 /* ============================================================
    MAIN INIT
    ============================================================ */
 document.addEventListener("DOMContentLoaded", () => {
   initTelegram();
-  authTelegram(); // non-blocking, result in DevTools console
+  authTelegram(); // non-blocking: validates signature, logs to console
+  getMe();        // non-blocking: upserts user in backend, logs profile
   buildPlaceholders();
   initTabs();
 
