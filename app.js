@@ -658,6 +658,23 @@ function buildSettings() {
         </div>
       </div>
 
+      <!-- USAGE (admin only, shown dynamically) -->
+      <div class="settings-section card" id="settings-usage-section" style="display:none">
+        <div class="settings-section-title">Usage</div>
+        <div class="settings-row">
+          <span class="settings-label">Tokens</span>
+          <span class="settings-value dim" id="usage-tokens">—</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Est. Cost</span>
+          <span class="settings-value dim" id="usage-cost">—</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Entries</span>
+          <span class="settings-value dim" id="usage-entries">—</span>
+        </div>
+      </div>
+
       <!-- PREFERENCES -->
       <div class="settings-section card">
         <div class="settings-section-title">Preferences</div>
@@ -771,6 +788,32 @@ function renderSettingsProfile(profile) {
   else                     badges.push('<span class="settings-badge muted">Free</span>');
   if (profile.is_admin)    badges.push('<span class="settings-badge teal">Admin</span>');
   badgesEl.innerHTML = badges.join("");
+
+  if (profile.is_admin) loadUsageBlock();
+}
+
+async function loadUsageBlock() {
+  const section = document.getElementById("settings-usage-section");
+  if (!section) return;
+  section.style.display = "";
+
+  const tg = window.Telegram?.WebApp;
+  if (!tg?.initData) return;
+
+  try {
+    const r = await fetch(`${API_BASE}/api/usage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ init_data: tg.initData }),
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById("usage-tokens").textContent  = (d.tokens  || 0).toLocaleString("en-US");
+    document.getElementById("usage-cost").textContent    = "$" + (d.cost || 0).toFixed(4);
+    document.getElementById("usage-entries").textContent = d.entries || 0;
+  } catch (_) {
+    // leave "—" placeholders
+  }
 }
 
 async function checkApiStatus() {
