@@ -210,30 +210,52 @@ function renderDashboard(d) {
   fundingEl.className = "stat-value " + (d.funding_rate >= 0 ? "positive" : "negative");
 
   document.getElementById("oi").textContent = "$" + d.total_oi_b.toFixed(1) + "B";
-  document.getElementById("bias").textContent = d.market_bias;
 
-  /* Fear & Greed */
+  const biasEl = document.getElementById("bias");
+  biasEl.textContent = d.market_bias;
+  biasEl.className = "stat-value " + (
+    d.market_bias === "Bullish" ? "positive" :
+    d.market_bias === "Bearish" ? "negative" :
+    "bias"
+  );
+
+  /* Fear & Greed — contrarian coloring: extreme fear = buy signal (green), extreme greed = sell signal (red) */
   const fgIconEl = document.querySelector(".metric-card:nth-child(1) .metric-icon");
   if (fgIconEl) fgIconEl.textContent = fgIcon(d.fear_greed);
-  document.getElementById("fear-greed").textContent = d.fear_greed;
+  const fgValEl = document.getElementById("fear-greed");
+  fgValEl.textContent = d.fear_greed;
+  fgValEl.className = "metric-value" + (
+    d.fear_greed <= 25 ? " up" :
+    d.fear_greed >= 80 ? " down" :
+    ""
+  );
   document.getElementById("fear-greed-label").textContent = d.fear_greed_label;
 
   /* BTC Dominance */
-  document.getElementById("btc-dom").textContent = d.btc_dominance.toFixed(1) + "%";
+  const domValEl = document.getElementById("btc-dom");
+  domValEl.textContent = d.btc_dominance.toFixed(1) + "%";
+  domValEl.className = "metric-value" + (
+    d.btc_dom_delta > 0 ? " up" :
+    d.btc_dom_delta < 0 ? " down" :
+    ""
+  );
   const domDelta = document.getElementById("btc-dom-delta");
   domDelta.textContent = (d.btc_dom_delta >= 0 ? "▲ +" : "▼ ") +
     Math.abs(d.btc_dom_delta).toFixed(1) + "% 24h";
   domDelta.className = "metric-sub " + (d.btc_dom_delta >= 0 ? "up" : "down");
 
   /* Long / Short */
-  document.getElementById("ls-ratio").textContent = d.long_short_ratio.toFixed(2);
+  const lsValEl = document.getElementById("ls-ratio");
+  lsValEl.textContent = d.long_short_ratio.toFixed(2);
+  lsValEl.className = "metric-value " + (d.long_short_ratio >= 1 ? "up" : "down");
   document.getElementById("ls-label").textContent =
     d.long_short_ratio >= 1 ? "Longs dominate" : "Shorts dominate";
 
   /* ETF Flow */
   const flow = d.etf_flow_m;
-  document.getElementById("etf-flow").textContent =
-    (flow >= 0 ? "+" : "") + fmtMoney(flow);
+  const etfEl = document.getElementById("etf-flow");
+  etfEl.textContent = (flow >= 0 ? "+" : "") + fmtMoney(flow);
+  etfEl.className = "metric-value" + (flow > 0 ? " up" : flow < 0 ? " down" : "");
   document.getElementById("etf-sub").textContent = "Net inflow today";
 
   /* Last Alert */

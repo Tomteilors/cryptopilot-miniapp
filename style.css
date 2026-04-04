@@ -311,6 +311,9 @@ html, body {
 .metric-sub.up   { color: var(--green); }
 .metric-sub.down { color: var(--red); }
 
+.metric-value.up   { color: var(--green); }
+.metric-value.down { color: var(--red); }
+
 /* ===== ALERT CARD ===== */
 .alert-card {
   margin-bottom: 10px;
