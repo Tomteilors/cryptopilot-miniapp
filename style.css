@@ -443,20 +443,59 @@ html, body {
 
 .screener-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   padding: 4px 0 10px;
+  gap: 8px;
+}
+
+.screener-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .screener-title {
   font-size: 16px;
   font-weight: 700;
   color: var(--text);
+  line-height: 1;
 }
 
 .screener-updated {
   font-size: 11px;
   color: var(--text-dim);
+  line-height: 1;
+}
+
+/* Sort control */
+.screener-sort {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sort-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-family: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.sort-btn.active {
+  background: rgba(77,212,198,0.12);
+  border-color: rgba(77,212,198,0.35);
+  color: var(--teal);
+  font-weight: 600;
 }
 
 /* Filter tabs — horizontal scroll */
@@ -473,13 +512,13 @@ html, body {
 
 .filter-tab {
   flex-shrink: 0;
-  background: var(--bg-card);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
   border-radius: 20px;
-  color: var(--text-muted);
+  color: var(--text-dim);
   font-size: 12px;
   font-family: inherit;
-  padding: 5px 12px;
+  padding: 5px 13px;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -487,83 +526,130 @@ html, body {
 }
 
 .filter-tab.active {
-  background: var(--gold-dim);
-  border-color: var(--gold-border);
+  background: rgba(245,196,81,0.18);
+  border-color: rgba(245,196,81,0.45);
   color: var(--gold);
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px rgba(245,196,81,0.08);
 }
 
-/* Signal cards */
+/* Signal list */
 .signal-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+/* Signal card — tappable */
 .signal-card {
-  padding: 12px 14px;
+  padding: 13px 14px;
   background: var(--bg-card);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s, transform 0.1s;
+  will-change: transform;
 }
 
+.signal-card:active {
+  background: var(--bg-card2);
+  transform: scale(0.985);
+}
+
+/* Card top row: icon + symbol + badges (right) */
 .signal-top {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 5px;
-  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 3px;
 }
 
 .signal-icon {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1;
   flex-shrink: 0;
 }
 
 .signal-symbol {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
+  letter-spacing: -0.3px;
 }
 
-.signal-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
-  flex: 1;
-  min-width: 0;
+/* Badges pushed to the right */
+.signal-badges {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+/* Signal type — secondary row */
+.signal-type {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  padding-left: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Direction badge */
 .sig-dir {
   font-size: 11px;
   font-weight: 700;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 20px;
+  letter-spacing: 0.3px;
   flex-shrink: 0;
 }
 
-.sig-dir.buy  { background: rgba(63,185,80,0.14); color: var(--green); }
-.sig-dir.sell { background: rgba(248,81,73,0.14);  color: var(--red); }
+.sig-dir.buy  {
+  background: rgba(63,185,80,0.18);
+  color: #4ade80;
+  border: 1px solid rgba(63,185,80,0.35);
+}
+.sig-dir.sell {
+  background: rgba(248,81,73,0.18);
+  color: #ff6b62;
+  border: 1px solid rgba(248,81,73,0.35);
+}
 
 /* Severity badge */
 .signal-sev {
   font-size: 10px;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   flex-shrink: 0;
 }
 
-.sev-high   { background: rgba(248,81,73,0.14);   color: var(--red);   }
-.sev-medium { background: rgba(245,196,81,0.14);  color: var(--gold);  }
-.sev-low    { background: rgba(125,133,144,0.14); color: var(--text-muted); }
+.sev-high   {
+  background: rgba(248,81,73,0.16);
+  color: #ff6b62;
+  border: 1px solid rgba(248,81,73,0.28);
+}
+.sev-medium {
+  background: rgba(245,196,81,0.16);
+  color: var(--gold);
+  border: 1px solid rgba(245,196,81,0.28);
+}
+.sev-low    {
+  background: rgba(125,133,144,0.08);
+  color: var(--text-dim);
+  border: 1px solid rgba(125,133,144,0.15);
+}
 
 .signal-body {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-muted);
-  margin-bottom: 7px;
-  line-height: 1.4;
+  margin-bottom: 8px;
+  line-height: 1.45;
+  word-break: break-word;
 }
 
 .signal-meta {

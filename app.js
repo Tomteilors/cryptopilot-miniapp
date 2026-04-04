@@ -274,23 +274,26 @@ const SIGNAL_ICONS = {
 const SEVERITY_LABEL = { high: "HIGH", medium: "MED", low: "LOW" };
 
 function signalCardHTML(s) {
-  const kind      = s.kind || s.type;
-  const icon      = SIGNAL_ICONS[kind] || "•";
-  const dirLabel  = s.direction === "buy"  ? '<span class="sig-dir buy">↑ BUY</span>'
-                  : s.direction === "sell" ? '<span class="sig-dir sell">↓ SELL</span>'
-                  : "";
-  const sevClass  = "sev-" + s.severity;
-  const bodyText  = s.subtitle || s.body || "";
+  const kind     = s.kind || s.type;
+  const icon     = SIGNAL_ICONS[kind] || "•";
+  const dirLabel = s.direction === "buy"  ? '<span class="sig-dir buy">↑ BUY</span>'
+                 : s.direction === "sell" ? '<span class="sig-dir sell">↓ SELL</span>'
+                 : "";
+  const sevClass = "sev-" + s.severity;
+  const sevLabel = SEVERITY_LABEL[s.severity] || s.severity?.toUpperCase() || "";
+  const bodyText = s.subtitle || s.body || "";
 
   return `
-    <div class="signal-card card" data-type="${kind}">
+    <div class="signal-card card" data-type="${kind}" data-id="${s.id}">
       <div class="signal-top">
         <span class="signal-icon">${icon}</span>
         <span class="signal-symbol">${s.symbol}</span>
-        <span class="signal-title">${s.title}</span>
-        ${dirLabel}
-        <span class="signal-sev ${sevClass}">${SEVERITY_LABEL[s.severity]}</span>
+        <span class="signal-badges">
+          ${dirLabel}
+          <span class="signal-sev ${sevClass}">${sevLabel}</span>
+        </span>
       </div>
+      <div class="signal-type">${s.title}</div>
       <div class="signal-body">${bodyText}</div>
       <div class="signal-meta">
         <span>${s.exchange}</span>
@@ -303,17 +306,31 @@ function signalCardHTML(s) {
    SCREENER — BUILD & RENDER
    ============================================================ */
 let _activeFilter = "all";
+let _activeSort    = "newest";
 let _screenerSignals = MOCK_SCREENER;
+
+const SEV_ORDER = { high: 3, medium: 2, low: 1 };
+
+function sortSignals(signals) {
+  if (_activeSort === "strongest") {
+    return [...signals].sort((a, b) => {
+      const diff = (SEV_ORDER[b.severity] || 0) - (SEV_ORDER[a.severity] || 0);
+      return diff !== 0 ? diff : b.ts - a.ts;
+    });
+  }
+  return [...signals].sort((a, b) => b.ts - a.ts);
+}
 
 function renderSignals(signals) {
   const filtered = _activeFilter === "all"
     ? signals
     : signals.filter(s => (s.kind || s.type) === _activeFilter);
+  const sorted = sortSignals(filtered);
 
   const list = document.getElementById("signal-list");
   if (!list) return;
 
-  if (filtered.length === 0) {
+  if (sorted.length === 0) {
     list.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">📭</div>
@@ -323,7 +340,7 @@ function renderSignals(signals) {
     return;
   }
 
-  list.innerHTML = filtered.map(signalCardHTML).join("");
+  list.innerHTML = sorted.map(signalCardHTML).join("");
 }
 
 function buildScreener() {
@@ -331,11 +348,11 @@ function buildScreener() {
   if (!panel) return;
 
   const filters = [
-    { key: "all",    label: "All" },
-    { key: "vol",    label: "⚡ Volume" },
-    { key: "oi",     label: "📊 OI" },
-    { key: "liq",    label: "💀 Liq" },
-    { key: "whale",  label: "🐋 Whale" },
+    { key: "all",   label: "All" },
+    { key: "vol",   label: "⚡ Volume" },
+    { key: "oi",    label: "📊 OI" },
+    { key: "liq",   label: "💀 Liq" },
+    { key: "whale", label: "🐋 Whale" },
   ];
 
   const filterHTML = filters.map(f =>
@@ -344,8 +361,14 @@ function buildScreener() {
 
   panel.innerHTML = `
     <div class="screener-header">
-      <span class="screener-title">Screener</span>
-      <span class="screener-updated" id="screener-updated">Loading…</span>
+      <div class="screener-title-wrap">
+        <span class="screener-title">Screener</span>
+        <span class="screener-updated" id="screener-updated">Loading…</span>
+      </div>
+      <div class="screener-sort" id="screener-sort">
+        <button class="sort-btn${_activeSort === "newest" ? " active" : ""}" data-sort="newest">Newest</button>
+        <button class="sort-btn${_activeSort === "strongest" ? " active" : ""}" data-sort="strongest">Strongest</button>
+      </div>
     </div>
     <div class="screener-filters" id="screener-filters">
       ${filterHTML}
@@ -359,6 +382,16 @@ function buildScreener() {
     if (!btn) return;
     _activeFilter = btn.dataset.filter;
     document.querySelectorAll(".filter-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderSignals(_screenerSignals);
+  });
+
+  // Sort button click handlers
+  document.getElementById("screener-sort").addEventListener("click", e => {
+    const btn = e.target.closest(".sort-btn");
+    if (!btn) return;
+    _activeSort = btn.dataset.sort;
+    document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     renderSignals(_screenerSignals);
   });
