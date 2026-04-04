@@ -1079,6 +1079,178 @@ html, body {
 .calc-result-value.green { color: var(--green); }
 .calc-result-value.gold  { color: var(--gold); }
 
+/* ===== RSI SCREEN ===== */
+
+.rsi-screen {
+  padding-top: 4px;
+}
+
+.rsi-screen-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 0 10px;
+}
+
+.rsi-screen-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rsi-screen-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Timeframe & zone rows — reuse filter-tab style */
+.rsi-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.rsi-tf-row,
+.rsi-zone-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rsi-tf-row::-webkit-scrollbar,
+.rsi-zone-row::-webkit-scrollbar { display: none; }
+
+.rsi-tab {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  padding: 5px 13px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.rsi-tab.active {
+  font-weight: 700;
+}
+
+/* Timeframe active: teal */
+.rsi-tf-row .rsi-tab.active {
+  background: rgba(77,212,198,0.14);
+  border-color: rgba(77,212,198,0.40);
+  color: var(--teal);
+}
+
+/* Zone active: dynamic per zone */
+.rsi-zone-row .rsi-tab.active               { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); color: var(--text-muted); }
+.rsi-zone-row .rsi-tab.active[data-zone="oversold"]   { background: rgba(248,81,73,0.14); border-color: rgba(248,81,73,0.38); color: #ff6b62; }
+.rsi-zone-row .rsi-tab.active[data-zone="neutral"]    { background: rgba(245,196,81,0.12); border-color: rgba(245,196,81,0.35); color: var(--gold); }
+.rsi-zone-row .rsi-tab.active[data-zone="overbought"] { background: rgba(63,185,80,0.14); border-color: rgba(63,185,80,0.38); color: #4ade80; }
+
+/* RSI list */
+.rsi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* RSI item card */
+.rsi-item {
+  padding: 12px 14px 10px;
+}
+
+.rsi-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.rsi-symbol {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.rsi-item-right {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rsi-value {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text-muted);
+}
+
+.rsi-value.oversold   { color: #ff6b62; }
+.rsi-value.overbought { color: #4ade80; }
+
+.rsi-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.rsi-badge.oversold   { background: rgba(248,81,73,0.16); color: #ff6b62; border: 1px solid rgba(248,81,73,0.28); }
+.rsi-badge.neutral    { background: rgba(125,133,144,0.10); color: var(--text-dim); border: 1px solid rgba(125,133,144,0.18); }
+.rsi-badge.overbought { background: rgba(63,185,80,0.16); color: #4ade80; border: 1px solid rgba(63,185,80,0.28); }
+
+/* RSI bar */
+.rsi-bar {
+  position: relative;
+  height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(to right,
+    rgba(248,81,73,0.30) 0%,    rgba(248,81,73,0.30) 30%,
+    rgba(125,133,144,0.15) 30%, rgba(125,133,144,0.15) 70%,
+    rgba(63,185,80,0.30) 70%,   rgba(63,185,80,0.30) 100%
+  );
+}
+
+/* Zone divider lines at 30 and 70 */
+.rsi-bar::before,
+.rsi-bar::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: rgba(255,255,255,0.12);
+}
+
+.rsi-bar::before { left: 30%; }
+.rsi-bar::after  { left: 70%; }
+
+.rsi-dot {
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--text-muted);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
+.rsi-dot.oversold   { background: #ff6b62; box-shadow: 0 0 6px rgba(248,81,73,0.6); }
+.rsi-dot.overbought { background: #4ade80; box-shadow: 0 0 6px rgba(63,185,80,0.6); }
+
 /* ===== SKELETON LOADER ===== */
 .skeleton {
   background: linear-gradient(90deg, var(--bg-card2) 25%, rgba(255,255,255,0.04) 50%, var(--bg-card2) 75%);

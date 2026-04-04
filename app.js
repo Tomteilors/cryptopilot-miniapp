@@ -58,6 +58,45 @@ const MOCK_SCREENER = [
 ];
 
 /* ============================================================
+   MOCK RSI DATA
+   Структура соответствует будущему /api/rsi?tf=1h
+   ============================================================ */
+const MOCK_RSI = {
+  "15m": [
+    { symbol: "BTC",   rsi: 28.4 }, { symbol: "DOGE",  rsi: 22.1 },
+    { symbol: "LINK",  rsi: 25.7 }, { symbol: "ETH",   rsi: 31.2 },
+    { symbol: "DOT",   rsi: 38.1 }, { symbol: "ADA",   rsi: 55.8 },
+    { symbol: "BNB",   rsi: 45.6 }, { symbol: "UNI",   rsi: 61.4 },
+    { symbol: "MATIC", rsi: 67.9 }, { symbol: "SOL",   rsi: 74.2 },
+    { symbol: "AVAX",  rsi: 79.3 }, { symbol: "LTC",   rsi: 82.5 },
+  ],
+  "1h": [
+    { symbol: "DOGE",  rsi: 27.4 }, { symbol: "LINK",  rsi: 29.3 },
+    { symbol: "DOT",   rsi: 35.6 }, { symbol: "ETH",   rsi: 38.9 },
+    { symbol: "BTC",   rsi: 42.1 }, { symbol: "ADA",   rsi: 44.2 },
+    { symbol: "BNB",   rsi: 52.3 }, { symbol: "UNI",   rsi: 58.1 },
+    { symbol: "MATIC", rsi: 63.4 }, { symbol: "SOL",   rsi: 68.7 },
+    { symbol: "AVAX",  rsi: 71.8 }, { symbol: "LTC",   rsi: 76.2 },
+  ],
+  "4h": [
+    { symbol: "LINK",  rsi: 37.6 }, { symbol: "DOT",   rsi: 41.3 },
+    { symbol: "DOGE",  rsi: 33.8 }, { symbol: "ADA",   rsi: 47.5 },
+    { symbol: "ETH",   rsi: 49.2 }, { symbol: "UNI",   rsi: 53.9 },
+    { symbol: "BTC",   rsi: 55.3 }, { symbol: "BNB",   rsi: 58.7 },
+    { symbol: "MATIC", rsi: 60.8 }, { symbol: "SOL",   rsi: 65.1 },
+    { symbol: "AVAX",  rsi: 70.2 }, { symbol: "LTC",   rsi: 68.4 },
+  ],
+  "1d": [
+    { symbol: "ADA",   rsi: 44.7 }, { symbol: "DOT",   rsi: 48.6 },
+    { symbol: "ETH",   rsi: 58.1 }, { symbol: "BNB",   rsi: 55.8 },
+    { symbol: "BTC",   rsi: 62.4 }, { symbol: "UNI",   rsi: 63.7 },
+    { symbol: "MATIC", rsi: 57.4 }, { symbol: "LINK",  rsi: 59.3 },
+    { symbol: "DOGE",  rsi: 44.7 }, { symbol: "SOL",   rsi: 72.3 },
+    { symbol: "AVAX",  rsi: 68.9 }, { symbol: "LTC",   rsi: 74.8 },
+  ],
+};
+
+/* ============================================================
    MOCK DATA — DASHBOARD
    В Этапе 3 заменяется на fetch() без изменения renderDashboard
    ============================================================ */
@@ -236,8 +275,7 @@ function setMarketStatus(online) {
 function buildPlaceholders() {
   // screener excluded — has its own buildScreener()
   const defs = {
-    rsi:      { icon: "📈", title: "RSI Scanner", sub: "Oversold / overbought signals — coming soon" },
-    settings: { icon: "⚙️", title: "Settings",    sub: "Wallets & thresholds — coming soon" }
+    settings: { icon: "⚙️", title: "Settings", sub: "Wallets & thresholds — coming soon" }
   };
   for (const [tab, cfg] of Object.entries(defs)) {
     const panel = document.getElementById("tab-" + tab);
@@ -533,6 +571,132 @@ async function loadScreenerData() {
     const updEl = document.getElementById("screener-updated");
     if (updEl) updEl.textContent = "Offline · mock data";
   }
+}
+
+/* ============================================================
+   RSI SCREEN
+   ============================================================ */
+function rsiZone(rsi) {
+  if (rsi < 30) return "oversold";
+  if (rsi > 70) return "overbought";
+  return "neutral";
+}
+
+function rsiItemHTML(item) {
+  const zone  = rsiZone(item.rsi);
+  const label = zone === "oversold" ? "Oversold" : zone === "overbought" ? "Overbought" : "Neutral";
+  const pct   = Math.min(Math.max(item.rsi, 2), 98); // keep dot inside bar visually
+
+  return `
+    <div class="rsi-item card">
+      <div class="rsi-item-row">
+        <span class="rsi-symbol">${item.symbol}</span>
+        <div class="rsi-item-right">
+          <span class="rsi-value ${zone}">${item.rsi.toFixed(1)}</span>
+          <span class="rsi-badge ${zone}">${label}</span>
+        </div>
+      </div>
+      <div class="rsi-bar">
+        <div class="rsi-dot ${zone}" style="left:${pct}%"></div>
+      </div>
+    </div>`;
+}
+
+function buildRSI() {
+  const panel = document.getElementById("tab-rsi");
+  if (!panel) return;
+
+  const timeframes = ["15m", "1h", "4h", "1d"];
+  const zones      = [
+    { key: "all",        label: "All" },
+    { key: "oversold",   label: "Oversold" },
+    { key: "neutral",    label: "Neutral" },
+    { key: "overbought", label: "Overbought" },
+  ];
+
+  const tfHTML   = timeframes.map(tf =>
+    `<button class="rsi-tab${tf === "1h" ? " active" : ""}" data-tf="${tf}">${tf}</button>`
+  ).join("");
+
+  const zoneHTML = zones.map(z =>
+    `<button class="rsi-tab${z.key === "all" ? " active" : ""}" data-zone="${z.key}">${z.label}</button>`
+  ).join("");
+
+  panel.innerHTML = `
+    <div class="rsi-screen">
+      <div class="rsi-screen-header">
+        <span class="rsi-screen-title">RSI Scanner</span>
+        <span class="rsi-screen-sub">Oversold &amp; overbought signals</span>
+      </div>
+      <div class="rsi-controls">
+        <div class="rsi-tf-row"   id="rsi-tf-row">${tfHTML}</div>
+        <div class="rsi-zone-row" id="rsi-zone-row">${zoneHTML}</div>
+      </div>
+      <div class="rsi-list" id="rsi-list"></div>
+      <div class="nav-spacer"></div>
+    </div>`;
+
+  let activeTf   = "1h";
+  let activeZone = "all";
+
+  function renderRSI() {
+    const data = MOCK_RSI[activeTf] || [];
+
+    let filtered = activeZone === "all"
+      ? data
+      : data.filter(item => rsiZone(item.rsi) === activeZone);
+
+    // Sort: oversold ascending, overbought descending, neutral by distance from 50
+    if (activeZone === "oversold") {
+      filtered = [...filtered].sort((a, b) => a.rsi - b.rsi);
+    } else if (activeZone === "overbought") {
+      filtered = [...filtered].sort((a, b) => b.rsi - a.rsi);
+    } else {
+      // All / Neutral: oversold first → neutral → overbought
+      filtered = [...filtered].sort((a, b) => {
+        const za = rsiZone(a.rsi) === "oversold" ? 0 : rsiZone(a.rsi) === "neutral" ? 1 : 2;
+        const zb = rsiZone(b.rsi) === "oversold" ? 0 : rsiZone(b.rsi) === "neutral" ? 1 : 2;
+        return za !== zb ? za - zb : a.rsi - b.rsi;
+      });
+    }
+
+    const list = document.getElementById("rsi-list");
+    if (!list) return;
+
+    if (filtered.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📊</div>
+          <div class="empty-title">No signals</div>
+          <div class="empty-sub">No coins in this zone for ${activeTf}</div>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(rsiItemHTML).join("");
+  }
+
+  // Timeframe click
+  document.getElementById("rsi-tf-row").addEventListener("click", e => {
+    const btn = e.target.closest(".rsi-tab");
+    if (!btn) return;
+    activeTf = btn.dataset.tf;
+    document.querySelectorAll("#rsi-tf-row .rsi-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderRSI();
+  });
+
+  // Zone filter click
+  document.getElementById("rsi-zone-row").addEventListener("click", e => {
+    const btn = e.target.closest(".rsi-tab");
+    if (!btn) return;
+    activeZone = btn.dataset.zone;
+    document.querySelectorAll("#rsi-zone-row .rsi-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderRSI();
+  });
+
+  renderRSI();
 }
 
 /* ============================================================
@@ -868,6 +1032,7 @@ document.addEventListener("DOMContentLoaded", () => {
   getMe();        // non-blocking: upserts user in backend, logs profile
   buildPlaceholders();
   buildScreener();
+  buildRSI();
   buildCalc();
   initModal();
   initTabs();
