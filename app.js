@@ -263,8 +263,10 @@ function timeAgo(ts) {
 }
 
 const SIGNAL_ICONS = {
+  vol:     "⚡",
   volume:  "⚡",
   oi:      "📊",
+  liq:     "💀",
   funding: "💸",
   whale:   "🐋",
 };
@@ -272,14 +274,16 @@ const SIGNAL_ICONS = {
 const SEVERITY_LABEL = { high: "HIGH", medium: "MED", low: "LOW" };
 
 function signalCardHTML(s) {
-  const icon      = SIGNAL_ICONS[s.type] || "•";
+  const kind      = s.kind || s.type;
+  const icon      = SIGNAL_ICONS[kind] || "•";
   const dirLabel  = s.direction === "buy"  ? '<span class="sig-dir buy">↑ BUY</span>'
                   : s.direction === "sell" ? '<span class="sig-dir sell">↓ SELL</span>'
                   : "";
   const sevClass  = "sev-" + s.severity;
+  const bodyText  = s.subtitle || s.body || "";
 
   return `
-    <div class="signal-card card" data-type="${s.type}">
+    <div class="signal-card card" data-type="${kind}">
       <div class="signal-top">
         <span class="signal-icon">${icon}</span>
         <span class="signal-symbol">${s.symbol}</span>
@@ -287,7 +291,7 @@ function signalCardHTML(s) {
         ${dirLabel}
         <span class="signal-sev ${sevClass}">${SEVERITY_LABEL[s.severity]}</span>
       </div>
-      <div class="signal-body">${s.body}</div>
+      <div class="signal-body">${bodyText}</div>
       <div class="signal-meta">
         <span>${s.exchange}</span>
         <span>${timeAgo(s.ts)}</span>
@@ -299,11 +303,12 @@ function signalCardHTML(s) {
    SCREENER — BUILD & RENDER
    ============================================================ */
 let _activeFilter = "all";
+let _screenerSignals = MOCK_SCREENER;
 
 function renderSignals(signals) {
   const filtered = _activeFilter === "all"
     ? signals
-    : signals.filter(s => s.type === _activeFilter);
+    : signals.filter(s => (s.kind || s.type) === _activeFilter);
 
   const list = document.getElementById("signal-list");
   if (!list) return;
@@ -326,11 +331,11 @@ function buildScreener() {
   if (!panel) return;
 
   const filters = [
-    { key: "all",     label: "All" },
-    { key: "volume",  label: "⚡ Volume" },
-    { key: "oi",      label: "📊 OI" },
-    { key: "funding", label: "💸 Funding" },
-    { key: "whale",   label: "🐋 Whale" },
+    { key: "all",    label: "All" },
+    { key: "vol",    label: "⚡ Volume" },
+    { key: "oi",     label: "📊 OI" },
+    { key: "liq",    label: "💀 Liq" },
+    { key: "whale",  label: "🐋 Whale" },
   ];
 
   const filterHTML = filters.map(f =>
@@ -340,7 +345,7 @@ function buildScreener() {
   panel.innerHTML = `
     <div class="screener-header">
       <span class="screener-title">Screener</span>
-      <span class="screener-updated" id="screener-updated">Mock data</span>
+      <span class="screener-updated" id="screener-updated">Loading…</span>
     </div>
     <div class="screener-filters" id="screener-filters">
       ${filterHTML}
@@ -355,10 +360,40 @@ function buildScreener() {
     _activeFilter = btn.dataset.filter;
     document.querySelectorAll(".filter-tab").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    renderSignals(MOCK_SCREENER);
+    renderSignals(_screenerSignals);
   });
 
-  renderSignals(MOCK_SCREENER);
+  renderSignals(_screenerSignals);
+  loadScreenerData();
+}
+
+async function loadScreenerData() {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+    const r = await fetch(`${API_BASE}/api/screener`, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    const alerts = data.alerts || [];
+
+    if (alerts.length > 0) {
+      _screenerSignals = alerts;
+      renderSignals(_screenerSignals);
+      const updEl = document.getElementById("screener-updated");
+      if (updEl) updEl.textContent = "Live · " + timeAgo(data.updated_at);
+    } else {
+      _screenerSignals = MOCK_SCREENER;
+      renderSignals(_screenerSignals);
+      const updEl = document.getElementById("screener-updated");
+      if (updEl) updEl.textContent = "No live signals yet";
+    }
+  } catch (_) {
+    _screenerSignals = MOCK_SCREENER;
+    renderSignals(_screenerSignals);
+    const updEl = document.getElementById("screener-updated");
+    if (updEl) updEl.textContent = "Offline · mock data";
+  }
 }
 
 /* ============================================================
