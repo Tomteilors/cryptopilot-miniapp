@@ -316,6 +316,49 @@ html, body {
 .metric-value.up   { color: var(--green); }
 .metric-value.down { color: var(--red); }
 
+/* ===== CME OPEN GAPS SECTION ===== */
+.cme-gaps-card {
+  margin-bottom: 10px;
+  padding: 14px 16px 10px;
+}
+
+.cme-gaps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cme-gaps-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cme-gaps-count {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.cme-gap-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  font-size: 13px;
+}
+
+.cme-gap-row:first-child { border-top: none; }
+
+.cme-gap-week  { color: var(--text-muted); font-size: 12px; min-width: 56px; }
+.cme-gap-range { color: var(--text); font-variant-numeric: tabular-nums; }
+.cme-gap-size  { font-size: 12px; font-variant-numeric: tabular-nums; }
+.cme-gap-size.up   { color: rgba(63,185,80,0.75); }
+.cme-gap-size.down { color: rgba(248,81,73,0.75); }
+
 /* ===== ALERT CARD ===== */
 .alert-card {
   margin-bottom: 10px;

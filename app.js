@@ -1295,6 +1295,11 @@ async function getMe() {
    DASHBOARD — CME GAP CARD
    Fetches /api/cme_gap independently (not part of /api/dashboard).
    ============================================================ */
+function _fmtK(n) {
+  // Format price compactly: 66964 → "66,964"
+  return Math.round(n).toLocaleString("en-US");
+}
+
 async function loadCmeGap() {
   const statusEl = document.getElementById("cme-status");
   const subEl    = document.getElementById("cme-sub");
@@ -1302,41 +1307,89 @@ async function loadCmeGap() {
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
+    const timer = setTimeout(() => controller.abort(), 10000);
     const r = await fetch(`${API_BASE}/api/cme_gap`, { signal: controller.signal });
     clearTimeout(timer);
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
 
     let valueText, subText, colorClass = "";
+    const rangeEl = document.getElementById("cme-range");
 
     if (d.status === "open") {
       const arrow = d.direction === "up" ? "↑" : "↓";
       valueText  = arrow + " Open";
       colorClass = d.direction === "up" ? " up" : " down";
       const sign = d.direction === "up" ? "+" : "−";
-      const size = d.gap_size ? sign + "$" + Math.round(d.gap_size).toLocaleString("en-US") : "";
-      const pct  = d.gap_pct  ? " (" + d.gap_pct + "%)" : "";
-      subText = size + pct || "—";
+      subText = d.gap_size
+        ? sign + "$" + _fmtK(d.gap_size) + (d.gap_pct ? " (" + d.gap_pct + "%)" : "")
+        : "—";
+      // Range line: "65,860 → 66,964"
+      if (rangeEl && d.gap_low != null && d.gap_high != null) {
+        rangeEl.textContent = _fmtK(d.gap_low) + " → " + _fmtK(d.gap_high);
+        rangeEl.style.display = "";
+      }
     } else if (d.status === "closed") {
       valueText = "Closed";
       subText   = "Gap filled ✓";
+      if (rangeEl) rangeEl.style.display = "none";
     } else if (d.status === "no_gap") {
       valueText = "No gap";
       subText   = "< $50 diff";
+      if (rangeEl) rangeEl.style.display = "none";
     } else {
       valueText = "—";
       subText   = "No data";
+      if (rangeEl) rangeEl.style.display = "none";
     }
 
     statusEl.textContent = valueText;
     statusEl.className   = "metric-value" + colorClass;
     subEl.textContent    = subText;
+
+    // Historical open gaps section
+    _renderOpenGaps(d.open_gaps || []);
   } catch (_) {
     statusEl.textContent = "—";
     statusEl.className   = "metric-value";
     subEl.textContent    = "Unavailable";
   }
+}
+
+function _renderOpenGaps(gaps) {
+  const section = document.getElementById("cme-gaps-section");
+  const list    = document.getElementById("cme-gaps-list");
+  const count   = document.getElementById("cme-gaps-count");
+  if (!section || !list) return;
+
+  // Only show historical gaps (exclude current week — already shown in card)
+  // Show max 3
+  const display = gaps.slice(0, 3);
+
+  if (display.length === 0) {
+    section.style.display = "none";
+    return;
+  }
+
+  count.textContent = gaps.length + " total";
+
+  list.innerHTML = display.map(g => {
+    const arrow    = g.direction === "up" ? "↑" : "↓";
+    const sizeSign = g.direction === "up" ? "+" : "−";
+    const sizeClass = g.direction === "up" ? "up" : "down";
+    // Week: "2026-03-28" → "Mar 28"
+    const dt       = new Date(g.week + "T12:00:00Z");
+    const weekLabel = dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+    return `
+      <div class="cme-gap-row">
+        <span class="cme-gap-week">${weekLabel}</span>
+        <span class="cme-gap-range">${_fmtK(g.gap_low)} – ${_fmtK(g.gap_high)}</span>
+        <span class="cme-gap-size ${sizeClass}">${arrow} ${sizeSign}$${_fmtK(g.gap_size)}</span>
+      </div>`;
+  }).join("");
+
+  section.style.display = "";
 }
 
 /* ============================================================
