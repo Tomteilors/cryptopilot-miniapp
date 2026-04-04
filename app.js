@@ -1358,6 +1358,16 @@ function initTabs() {
 /* ============================================================
    TELEGRAM WEBAPP INIT
    ============================================================ */
+/* Pins --tg-vh to viewportStableHeight so the layout doesn't jump
+   when the keyboard opens/closes in Telegram WebView on iOS.
+   Falls back gracefully in browser mode (tg or stableHeight absent). */
+function _lockAppHeight(tg) {
+  const h = tg?.viewportStableHeight;
+  if (h && h > 100) {
+    document.documentElement.style.setProperty("--tg-vh", h + "px");
+  }
+}
+
 function initTelegram() {
   const tg = window.Telegram?.WebApp;
   if (!tg) return;
@@ -1367,6 +1377,9 @@ function initTelegram() {
   if (typeof tg.requestFullscreen    === "function") tg.requestFullscreen();
   if (typeof tg.setBackgroundColor   === "function") tg.setBackgroundColor("#0d1117");
   if (typeof tg.setHeaderColor       === "function") tg.setHeaderColor("#0d1117");
+  // Lock layout height to stable viewport (keyboard-open safe)
+  _lockAppHeight(tg);
+  tg.onEvent("viewportChanged", () => _lockAppHeight(tg));
 }
 
 /* ============================================================

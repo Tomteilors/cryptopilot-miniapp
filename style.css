@@ -137,8 +137,10 @@ html, body {
 .scroll-area {
   margin-top: calc(var(--header-h) + env(safe-area-inset-top, 0px));
   overflow-y: auto;
-  height: calc(100vh - var(--header-h) - env(safe-area-inset-top, 0px) - var(--nav-h));
+  /* --tg-vh: set via JS from tg.viewportStableHeight; falls back to dvh/vh in browser */
+  height: calc(100vh  - var(--header-h) - env(safe-area-inset-top, 0px) - var(--nav-h));
   height: calc(100dvh - var(--header-h) - env(safe-area-inset-top, 0px) - var(--nav-h));
+  height: calc(var(--tg-vh, 100dvh) - var(--header-h) - env(safe-area-inset-top, 0px) - var(--nav-h));
   padding: 12px 12px 0;
   -webkit-overflow-scrolling: touch;
 }
@@ -1034,12 +1036,13 @@ html, body {
   border: none;
   outline: none;
   color: var(--text);
-  font-size: 15px;
+  font-size: 16px; /* ≥16px prevents iOS auto-zoom on focus */
   font-family: inherit;
   font-weight: 500;
-  padding: 10px 0;
+  padding: 9px 0;
   min-width: 0;
   -webkit-appearance: none;
+  touch-action: manipulation;
 }
 
 .calc-input::placeholder {
