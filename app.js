@@ -225,10 +225,50 @@ function initTelegram() {
 }
 
 /* ============================================================
+   TELEGRAM AUTH
+   Отправляет initData на backend для серверной валидации.
+   Результат в console — для отладки и будущего access control.
+   Не блокирует загрузку Dashboard.
+   ============================================================ */
+async function authTelegram() {
+  const tg = window.Telegram?.WebApp;
+  if (!tg || !tg.initData) {
+    console.log("[auth] No initData — browser mode, skipping auth");
+    return null;
+  }
+
+  try {
+    const r = await fetch(`${API_BASE}/api/auth/telegram`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ init_data: tg.initData }),
+    });
+    const data = await r.json();
+
+    if (r.ok && data.ok) {
+      console.log("[auth] ✅ Telegram user verified:", {
+        id:       data.telegram_id,
+        username: data.username || "(no username)",
+        name:     data.first_name,
+        lang:     data.language_code,
+      });
+      return data;
+    } else {
+      console.warn("[auth] ❌ Auth rejected:", data.detail);
+      return null;
+    }
+  } catch (err) {
+    console.warn("[auth] ⚠️ Auth request failed:", err.message);
+    return null;
+  }
+}
+
+/* ============================================================
    MAIN INIT
    ============================================================ */
 document.addEventListener("DOMContentLoaded", () => {
   initTelegram();
+  authTelegram(); // non-blocking, result in DevTools console
   buildPlaceholders();
   initTabs();
 
