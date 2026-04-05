@@ -896,8 +896,8 @@ function buildRSI() {
   const zones      = [
     { key: "all",        label: "All" },
     { key: "oversold",   label: "Oversold" },
-    { key: "neutral",    label: "Neutral" },
     { key: "overbought", label: "Overbought" },
+    { key: "neutral",    label: "Neutral" },
   ];
 
   const tfHTML   = timeframes.map(tf =>
@@ -913,7 +913,7 @@ function buildRSI() {
       <div class="rsi-screen-header">
         <div>
           <span class="rsi-screen-title">RSI Scanner</span>
-          <span class="rsi-screen-sub">Oversold &amp; overbought signals</span>
+          <span class="rsi-screen-sub">Market-wide scan · extremes only</span>
         </div>
         <span class="screener-updated" id="rsi-updated">Loading…</span>
       </div>
@@ -930,35 +930,34 @@ function buildRSI() {
   let _rsiData    = {};   // tf → items array (live or mock)
 
   function renderRSI() {
-    const data = _rsiData[activeTf] || MOCK_RSI[activeTf] || [];
+    // API only returns extremes (oversold + overbought)
+    const data = _rsiData[activeTf] || [];
 
-    let filtered = activeZone === "all"
-      ? data
-      : data.filter(item => rsiZone(item.rsi) === activeZone);
-
-    // Sort: oversold ascending, overbought descending, neutral by distance from 50
-    if (activeZone === "oversold") {
-      filtered = [...filtered].sort((a, b) => a.rsi - b.rsi);
-    } else if (activeZone === "overbought") {
-      filtered = [...filtered].sort((a, b) => b.rsi - a.rsi);
+    let filtered;
+    if (activeZone === "neutral") {
+      filtered = []; // API doesn't return neutrals — scanner focuses on extremes
+    } else if (activeZone === "all") {
+      filtered = data; // already sorted oversold-asc → overbought-desc by API
     } else {
-      // All / Neutral: oversold first → neutral → overbought
-      filtered = [...filtered].sort((a, b) => {
-        const za = rsiZone(a.rsi) === "oversold" ? 0 : rsiZone(a.rsi) === "neutral" ? 1 : 2;
-        const zb = rsiZone(b.rsi) === "oversold" ? 0 : rsiZone(b.rsi) === "neutral" ? 1 : 2;
-        return za !== zb ? za - zb : a.rsi - b.rsi;
-      });
+      filtered = data.filter(item => rsiZone(item.rsi) === activeZone);
+      if (activeZone === "oversold") {
+        filtered = [...filtered].sort((a, b) => a.rsi - b.rsi);
+      } else {
+        filtered = [...filtered].sort((a, b) => b.rsi - a.rsi);
+      }
     }
 
     const list = document.getElementById("rsi-list");
     if (!list) return;
 
     if (filtered.length === 0) {
+      const msg = activeZone === "neutral"
+        ? "Neutral RSI coins are not tracked — scanner shows extremes only"
+        : "No extreme RSI signals right now";
       list.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">📊</div>
-          <div class="empty-title">No signals</div>
-          <div class="empty-sub">No coins in this zone for ${activeTf}</div>
+          <div class="empty-title">${msg}</div>
         </div>`;
       return;
     }
@@ -991,25 +990,24 @@ function buildRSI() {
   async function loadRSIData(tf) {
     try {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 8000);
+      const timer = setTimeout(() => controller.abort(), 15000);
       const r = await fetch(`${API_BASE}/api/rsi?tf=${tf}`, { signal: controller.signal });
       clearTimeout(timer);
       if (!r.ok) throw new Error("HTTP " + r.status);
       const data = await r.json();
-      if (Array.isArray(data.items) && data.items.length > 0) {
-        _rsiData[tf] = data.items;
-        if (activeTf === tf) renderRSI();
-        const updEl = document.getElementById("rsi-updated");
-        if (updEl) updEl.textContent = "Live · " + timeAgo(data.updated_at);
+      _rsiData[tf] = Array.isArray(data.items) ? data.items : [];
+      if (activeTf === tf) renderRSI();
+      const updEl = document.getElementById("rsi-updated");
+      if (updEl) {
+        const scannedStr = data.scanned ? data.scanned + " coins · " : "";
+        updEl.textContent = scannedStr + timeAgo(data.updated_at);
       }
     } catch (_) {
-      // fallback: MOCK_RSI already used in renderRSI()
       const updEl = document.getElementById("rsi-updated");
-      if (updEl) updEl.textContent = "Offline · mock data";
+      if (updEl) updEl.textContent = "Unavailable";
     }
   }
 
-  renderRSI();
   loadRSIData(activeTf);
 }
 
