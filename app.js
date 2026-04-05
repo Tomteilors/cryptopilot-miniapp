@@ -908,7 +908,6 @@ function buildRSI() {
     { key: "all",        label: "All" },
     { key: "oversold",   label: "Oversold" },
     { key: "overbought", label: "Overbought" },
-    { key: "neutral",    label: "Neutral" },
   ];
 
   const tfHTML   = timeframes.map(tf =>
@@ -945,9 +944,7 @@ function buildRSI() {
     const data = _rsiData[activeTf] || [];
 
     let filtered;
-    if (activeZone === "neutral") {
-      filtered = []; // API doesn't return neutrals — scanner focuses on extremes
-    } else if (activeZone === "all") {
+    if (activeZone === "all") {
       filtered = data; // already sorted oversold-asc → overbought-desc by API
     } else {
       filtered = data.filter(item => rsiZone(item.rsi) === activeZone);
@@ -962,13 +959,10 @@ function buildRSI() {
     if (!list) return;
 
     if (filtered.length === 0) {
-      const msg = activeZone === "neutral"
-        ? "Neutral RSI coins are not tracked — scanner shows extremes only"
-        : "No extreme RSI signals right now";
       list.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">📊</div>
-          <div class="empty-title">${msg}</div>
+          <div class="empty-title">No extreme RSI signals right now</div>
         </div>`;
       return;
     }
