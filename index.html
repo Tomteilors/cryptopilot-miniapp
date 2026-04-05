@@ -6,7 +6,7 @@
   <title>CryptoPilot</title>
   <link rel="icon" type="image/png" sizes="32x32" href="assets/logo/logo-32.png"/>
   <link rel="apple-touch-icon" href="assets/logo/logo-128.png"/>
-  <link rel="stylesheet" href="style.css?v=20260405-3"/>
+  <link rel="stylesheet" href="style.css?v=20260405-4"/>
   <!-- Telegram Mini App SDK — must load before app.js -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -17,15 +17,16 @@
     <!-- left: reserved for future controls (e.g. back button) -->
     <div class="header-left"></div>
 
-    <!-- center: absolutely positioned so it's always screen-center -->
+    <!-- center: absolutely positioned so it's always screen-center — logo+text ONLY -->
     <div class="header-center">
       <img class="logo-img" src="assets/logo/logo-64.png" alt="CryptoPilot"/>
       <span class="logo-text">CryptoPilot</span>
-      <span class="status-pill" id="status-pill">ON</span>
     </div>
 
-    <!-- right: reserved (keeps flex balance) -->
-    <div class="header-right"></div>
+    <!-- right: status pill lives here, separate from center block -->
+    <div class="header-right">
+      <span class="status-pill" id="status-pill">ON</span>
+    </div>
   </header>
 
   <!-- SCROLL AREA -->
