@@ -6,7 +6,7 @@
   <title>CryptoPilot</title>
   <link rel="icon" type="image/png" sizes="32x32" href="assets/logo/logo-32.png"/>
   <link rel="apple-touch-icon" href="assets/logo/logo-128.png"/>
-  <link rel="stylesheet" href="style.css?v=20260405-8"/>
+  <link rel="stylesheet" href="style.css?v=20260405-10"/>
   <!-- Telegram Mini App SDK — must load before app.js -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -131,6 +131,16 @@
 
   </main>
 
+  <!-- GATE SCREEN — shown when user is not a group member -->
+  <div id="gate-screen" style="display:none">
+    <div class="gate-content">
+      <img class="gate-logo" src="assets/logo/logo-128.png" alt="CryptoPilot"/>
+      <div class="gate-title">CryptoPilot</div>
+      <div class="gate-text">Join our private group to access CryptoPilot</div>
+      <a class="gate-btn" href="https://t.me/+YDkeY1vXzsllOGVk" target="_blank">Join Group →</a>
+    </div>
+  </div>
+
   <!-- CME GAP DETAIL MODAL -->
   <div id="cme-modal" class="cme-modal-overlay" role="dialog" aria-modal="true">
     <div class="cme-modal-sheet">
@@ -204,6 +214,6 @@
     </button>
   </nav>
 
-  <script src="app.js?v=20260405-9"></script>
+  <script src="app.js?v=20260405-10"></script>
 </body>
 </html>

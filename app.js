@@ -1722,10 +1722,44 @@ async function loadDashboardAlert() {
 }
 
 /* ============================================================
+   MEMBERSHIP GATE
+   ============================================================ */
+async function checkAccess() {
+  const tg = window.Telegram?.WebApp;
+  if (!tg || !tg.initData) return true; // browser / dev mode → open
+
+  try {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 6000);
+    const r = await fetch(`${API_BASE}/api/access`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ init_data: tg.initData }),
+      signal:  controller.signal,
+    });
+    const data = await r.json();
+    return data.error !== "not_member"; // ok or any other state → allow
+  } catch {
+    return true; // fail open on network error
+  }
+}
+
+function showGateScreen() {
+  document.getElementById("gate-screen").style.display = "flex";
+  document.querySelector(".header").style.display       = "none";
+  document.querySelector(".scroll-area").style.display  = "none";
+  document.querySelector(".bottom-nav").style.display   = "none";
+}
+
+/* ============================================================
    MAIN INIT
    ============================================================ */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   initTelegram();
+
+  const hasAccess = await checkAccess();
+  if (!hasAccess) { showGateScreen(); return; }
+
   authTelegram(); // non-blocking: validates signature, logs to console
   getMe();        // non-blocking: upserts user in backend, logs profile
   buildPlaceholders();
