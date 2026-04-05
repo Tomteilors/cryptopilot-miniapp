@@ -448,11 +448,11 @@ function openSignalModal(id) {
   const statusEl = document.getElementById("modal-status");
   if (statusEl) {
     const pills = [];
-    if      (s.level === "mega")   pills.push('<span class="status-pill sp-mega">🚨 MEGA</span>');
-    else if (s.level === "strong") pills.push('<span class="status-pill sp-strong">🔥 Strong</span>');
-    if      (s.posted_to_channel === true)  pills.push('<span class="status-pill sp-posted">📢 Posted</span>');
-    else if (s.posted_to_channel === false) pills.push('<span class="status-pill sp-not-posted">Not posted</span>');
-    if (s.pinned === true) pills.push('<span class="status-pill sp-pinned">📌 Pinned</span>');
+    if      (s.level === "mega")   pills.push('<span class="modal-pill sp-mega">🚨 MEGA</span>');
+    else if (s.level === "strong") pills.push('<span class="modal-pill sp-strong">🔥 Strong</span>');
+    if      (s.posted_to_channel === true)  pills.push('<span class="modal-pill sp-posted">📢 Posted</span>');
+    else if (s.posted_to_channel === false) pills.push('<span class="modal-pill sp-not-posted">Not posted</span>');
+    if (s.pinned === true) pills.push('<span class="modal-pill sp-pinned">📌 Pinned</span>');
     statusEl.innerHTML = pills.join("");
     statusEl.style.display = pills.length ? "flex" : "none";
   }
@@ -1539,8 +1539,12 @@ async function loadCmeGap() {
     statusEl.className   = "metric-value" + colorClass;
     subEl.textContent    = subText;
 
-    // Historical open gaps section
-    _renderOpenGaps(d.open_gaps || []);
+    // Historical open gaps section.
+    // If current status is "open", skip index 0 (current week already shown in card).
+    const historicalGaps = d.status === "open"
+      ? (d.open_gaps || []).slice(1)
+      : (d.open_gaps || []);
+    _renderOpenGaps(historicalGaps, d.status === "closed");
   } catch (_) {
     statusEl.textContent = "—";
     statusEl.className   = "metric-value";
@@ -1548,14 +1552,13 @@ async function loadCmeGap() {
   }
 }
 
-function _renderOpenGaps(gaps) {
-  const section = document.getElementById("cme-gaps-section");
-  const list    = document.getElementById("cme-gaps-list");
-  const count   = document.getElementById("cme-gaps-count");
+function _renderOpenGaps(gaps, currentClosed = false) {
+  const section   = document.getElementById("cme-gaps-section");
+  const list      = document.getElementById("cme-gaps-list");
+  const countEl   = document.getElementById("cme-gaps-count");
+  const titleEl   = document.querySelector("#cme-gaps-section .cme-gaps-title");
   if (!section || !list) return;
 
-  // Only show historical gaps (exclude current week — already shown in card)
-  // Show max 3
   const display = gaps.slice(0, 3);
 
   if (display.length === 0) {
@@ -1563,7 +1566,9 @@ function _renderOpenGaps(gaps) {
     return;
   }
 
-  count.textContent = gaps.length + " total";
+  // Update title: "Older Open Gaps" when current is closed, else "Open CME Gaps"
+  if (titleEl) titleEl.textContent = currentClosed ? "Older Open Gaps" : "Open CME Gaps";
+  if (countEl) countEl.textContent = gaps.length === 1 ? "1 gap" : gaps.length + " gaps";
 
   list.innerHTML = display.map(g => {
     const arrow    = g.direction === "up" ? "↑" : "↓";
