@@ -868,18 +868,29 @@ function rsiZone(rsi) {
   return "neutral";
 }
 
+function rsiStrength(rsi) {
+  if (rsi < 20 || rsi > 80) return "high";
+  return "normal";
+}
+
 function rsiItemHTML(item) {
-  const zone  = rsiZone(item.rsi);
-  const label = zone === "oversold" ? "Oversold" : zone === "overbought" ? "Overbought" : "Neutral";
-  const pct   = Math.min(Math.max(item.rsi, 2), 98); // keep dot inside bar visually
+  const zone     = rsiZone(item.rsi);
+  const strength = rsiStrength(item.rsi);
+  const high     = strength === "high";
+
+  const label = high
+    ? (zone === "oversold" ? "🔥 Extreme OS" : "🔥 Extreme OB")
+    : (zone === "oversold" ? "Oversold" : zone === "overbought" ? "Overbought" : "Neutral");
+
+  const pct = Math.min(Math.max(item.rsi, 2), 98); // keep dot inside bar visually
 
   return `
-    <div class="rsi-item card">
+    <div class="rsi-item card${high ? " rsi-high" : ""}">
       <div class="rsi-item-row">
         <span class="rsi-symbol">${item.symbol}</span>
         <div class="rsi-item-right">
           <span class="rsi-value ${zone}">${item.rsi.toFixed(1)}</span>
-          <span class="rsi-badge ${zone}">${label}</span>
+          <span class="rsi-badge ${zone}${high ? " high" : ""}">${label}</span>
         </div>
       </div>
       <div class="rsi-bar">
