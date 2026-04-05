@@ -689,6 +689,29 @@ html, body {
   border: 1px solid rgba(125,133,144,0.15);
 }
 
+/* Level badge — MEGA */
+.badge-level {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.4px;
+  flex-shrink: 0;
+}
+.badge-level.mega {
+  background: rgba(255, 90, 31, 0.16);
+  color: #ff7043;
+  border: 1px solid rgba(255, 90, 31, 0.3);
+}
+
+/* Posted badge */
+.badge-posted {
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
 .signal-body {
   font-size: 12px;
   color: var(--text-muted);

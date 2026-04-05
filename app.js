@@ -337,6 +337,8 @@ function signalCardHTML(s) {
   const sevClass = "sev-" + s.severity;
   const sevLabel = SEVERITY_LABEL[s.severity] || s.severity?.toUpperCase() || "";
   const bodyText = s.subtitle || s.body || "";
+  const megaBadge   = s.level === "mega"         ? '<span class="badge-level mega">🚨 MEGA</span>' : "";
+  const postedBadge = s.posted_to_channel === true ? '<span class="badge-posted">📢</span>' : "";
 
   return `
     <div class="signal-card card" data-type="${kind}" data-id="${s.id}">
@@ -344,7 +346,7 @@ function signalCardHTML(s) {
         <span class="signal-icon">${icon}</span>
         <span class="signal-symbol">${s.symbol}</span>
         <span class="signal-badges">
-          ${dirLabel}
+          ${megaBadge}${postedBadge}${dirLabel}
           <span class="signal-sev ${sevClass}">${sevLabel}</span>
         </span>
       </div>
@@ -391,14 +393,19 @@ function openExternalLink(url) {
   }
 }
 
-function applyModalBtn(btnId, url) {
+function applyModalBtn(btnId, url, { hide = false } = {}) {
   const btn = document.getElementById(btnId);
   if (!btn) return;
   btn.onclick = null;
   if (url) {
+    btn.style.display = "";
     btn.disabled = false;
     btn.onclick = () => openExternalLink(url);
+  } else if (hide) {
+    btn.style.display = "none";
+    btn.disabled = true;
   } else {
+    btn.style.display = "";
     btn.disabled = true;
   }
 }
@@ -435,6 +442,7 @@ function openSignalModal(id) {
 
   applyModalBtn("modal-btn-chart",    buildChartURL(s.exchange, s.symbol));
   applyModalBtn("modal-btn-exchange", buildExchangeURL(s.exchange, s.symbol));
+  applyModalBtn("modal-btn-channel",  s.channel_url || null, { hide: true });
 
   document.getElementById("signal-modal").classList.add("is-open");
 }
@@ -478,8 +486,9 @@ function sortSignals(signals) {
 }
 
 function renderSignals(signals) {
-  const filtered = _activeFilter === "all"
-    ? signals
+  const filtered = _activeFilter === "all"      ? signals
+    : _activeFilter === "mega"   ? signals.filter(s => s.level === "mega")
+    : _activeFilter === "posted" ? signals.filter(s => s.posted_to_channel === true)
     : signals.filter(s => (s.kind || s.type) === _activeFilter);
   const sorted = sortSignals(filtered);
 
@@ -504,11 +513,13 @@ function buildScreener() {
   if (!panel) return;
 
   const filters = [
-    { key: "all",   label: "All" },
-    { key: "vol",   label: "⚡ Volume" },
-    { key: "oi",    label: "📊 OI" },
-    { key: "liq",   label: "💀 Liq" },
-    { key: "whale", label: "🐋 Whale" },
+    { key: "all",    label: "All" },
+    { key: "mega",   label: "🚨 Mega" },
+    { key: "posted", label: "📢 Posted" },
+    { key: "vol",    label: "⚡ Vol" },
+    { key: "oi",     label: "📊 OI" },
+    { key: "liq",    label: "💀 Liq" },
+    { key: "whale",  label: "🐋 Whale" },
   ];
 
   const filterHTML = filters.map(f =>
