@@ -743,8 +743,40 @@ function buildSettings() {
     openExternalLink("https://t.me/+YDkeY1vXzsllOGVk");
   });
 
-  document.getElementById("settings-channel-btn").addEventListener("click", () => {
-    openExternalLink("https://t.me/+MhZkGvxjGXJkMjg0");
+  document.getElementById("settings-channel-btn").addEventListener("click", async () => {
+    const btn = document.getElementById("settings-channel-btn");
+    const tg  = window.Telegram?.WebApp;
+    if (!tg?.initData) {
+      openExternalLink("https://t.me/+MhZkGvxjGXJkMjg0");
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = "⏳ Getting access…";
+    try {
+      const r = await fetch(`${API_BASE}/api/channel_access`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ init_data: tg.initData }),
+      });
+      const data = await r.json();
+      if (data.error === "not_member") {
+        showGateScreen();
+        return;
+      }
+      if (data.ok && data.invite_link) {
+        tg.openLink(data.invite_link);
+      } else {
+        btn.textContent = "❌ Try again";
+        setTimeout(() => { btn.textContent = "📢 Screener Channel"; btn.disabled = false; }, 3000);
+        return;
+      }
+    } catch {
+      btn.textContent = "❌ Error";
+      setTimeout(() => { btn.textContent = "📢 Screener Channel"; btn.disabled = false; }, 3000);
+      return;
+    }
+    btn.textContent = "✅ Link sent";
+    setTimeout(() => { btn.textContent = "📢 Screener Channel"; btn.disabled = false; }, 4000);
   });
 }
 
