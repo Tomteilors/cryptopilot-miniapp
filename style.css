@@ -365,6 +365,74 @@ html, body {
 .cme-gap-size.up   { color: rgba(63,185,80,0.75); }
 .cme-gap-size.down { color: rgba(248,81,73,0.75); }
 
+.cme-older {
+  color: var(--text-dim);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+/* ===== CME DETAIL MODAL ===== */
+.cme-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 200;
+  align-items: flex-end;
+  -webkit-tap-highlight-color: transparent;
+}
+.cme-modal-overlay.open { display: flex; }
+
+.cme-modal-sheet {
+  background: var(--card-bg, #1a1d24);
+  border-radius: 20px 20px 0 0;
+  padding: 8px 20px 40px;
+  width: 100%;
+  max-height: 72vh;
+  overflow-y: auto;
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.45);
+}
+
+.cme-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  padding: 12px 0 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  margin-bottom: 16px;
+}
+
+.cme-modal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  font-size: 14px;
+}
+.cme-modal-row:first-child { border-top: none; }
+
+.cme-modal-row-label {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.cme-modal-row-value {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  text-align: right;
+}
+
+.cme-modal-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 18px 0 8px;
+}
+
 /* ===== ALERT CARD ===== */
 .alert-card {
   margin-bottom: 10px;

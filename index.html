@@ -6,7 +6,7 @@
   <title>CryptoPilot</title>
   <link rel="icon" type="image/png" sizes="32x32" href="assets/logo/logo-32.png"/>
   <link rel="apple-touch-icon" href="assets/logo/logo-128.png"/>
-  <link rel="stylesheet" href="style.css?v=20260405-4"/>
+  <link rel="stylesheet" href="style.css?v=20260405-5"/>
   <!-- Telegram Mini App SDK — must load before app.js -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -90,12 +90,13 @@
         <div class="metric-sub" id="ls-label">—</div>
       </div>
 
-      <div class="metric-card card">
+      <div class="metric-card card" id="cme-card" style="cursor:pointer">
         <div class="metric-icon">📐</div>
         <div class="metric-label">CME Gap</div>
         <div class="metric-value" id="cme-status">—</div>
         <div class="metric-sub" id="cme-sub">—</div>
         <div class="metric-sub cme-range" id="cme-range" style="display:none"></div>
+        <div class="metric-sub cme-older" id="cme-older" style="display:none"></div>
       </div>
 
     </section>
@@ -129,6 +130,15 @@
   <div id="tab-settings" class="tab-panel"></div>
 
   </main>
+
+  <!-- CME GAP DETAIL MODAL -->
+  <div id="cme-modal" class="cme-modal-overlay" role="dialog" aria-modal="true">
+    <div class="cme-modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="cme-modal-title">📐 CME Gap</div>
+      <div id="cme-modal-content"></div>
+    </div>
+  </div>
 
   <!-- SIGNAL DETAIL MODAL -->
   <div id="signal-modal" class="signal-modal-overlay" role="dialog" aria-modal="true">
@@ -194,6 +204,6 @@
     </button>
   </nav>
 
-  <script src="app.js?v=20260405-3"></script>
+  <script src="app.js?v=20260405-5"></script>
 </body>
 </html>

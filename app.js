@@ -474,14 +474,23 @@ function initModal() {
   document.getElementById("modal-close").addEventListener("click", closeSignalModal);
   // Escape key (desktop / Telegram PC)
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") closeSignalModal();
+    if (e.key === "Escape") { closeSignalModal(); _closeCmeModal(); }
   });
+
+  // CME detail modal — close on overlay tap
+  const cmeOverlay = document.getElementById("cme-modal");
+  if (cmeOverlay) {
+    cmeOverlay.addEventListener("click", e => {
+      if (e.target === cmeOverlay) _closeCmeModal();
+    });
+  }
 }
 
 /* ============================================================
    SCREENER — BUILD & RENDER
    ============================================================ */
 let _userProfile  = null; // shared across getMe() and Settings screen
+let _cmeData      = null; // last CME gap API response, used by detail modal
 let _activeFilter = "all";
 let _activeSort    = "newest";
 let _screenerSignals = MOCK_SCREENER;
@@ -1497,6 +1506,13 @@ async function loadCmeGap() {
   const subEl    = document.getElementById("cme-sub");
   if (!statusEl) return;
 
+  // Wire up CME card tap → detail modal (once)
+  const cmeCard = document.getElementById("cme-card");
+  if (cmeCard && !cmeCard._cmeModalBound) {
+    cmeCard._cmeModalBound = true;
+    cmeCard.addEventListener("click", _openCmeModal);
+  }
+
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 10000);
@@ -1504,9 +1520,11 @@ async function loadCmeGap() {
     clearTimeout(timer);
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
+    _cmeData = d; // store for modal
 
     let valueText, subText, colorClass = "";
-    const rangeEl = document.getElementById("cme-range");
+    const rangeEl  = document.getElementById("cme-range");
+    const olderEl  = document.getElementById("cme-older");
 
     if (d.status === "open") {
       const arrow = d.direction === "up" ? "↑" : "↓";
@@ -1516,30 +1534,42 @@ async function loadCmeGap() {
       subText = d.gap_size
         ? sign + "$" + _fmtK(d.gap_size) + (d.gap_pct ? " (" + d.gap_pct + "%)" : "")
         : "—";
-      // Range line: "65,860 → 66,964"
       if (rangeEl && d.gap_low != null && d.gap_high != null) {
         rangeEl.textContent = _fmtK(d.gap_low) + " → " + _fmtK(d.gap_high);
         rangeEl.style.display = "";
       }
+      if (olderEl) olderEl.style.display = "none";
     } else if (d.status === "closed") {
       valueText = "Closed";
       subText   = "Gap filled ✓";
       if (rangeEl) rangeEl.style.display = "none";
+      // Secondary line: older open gaps count
+      const olderCount = (d.open_gaps || []).length;
+      if (olderEl) {
+        if (olderCount > 0) {
+          olderEl.textContent = olderCount === 1 ? "1 older open gap ↓" : olderCount + " older open gaps ↓";
+          olderEl.style.display = "";
+        } else {
+          olderEl.style.display = "none";
+        }
+      }
     } else if (d.status === "no_gap") {
       valueText = "No gap";
       subText   = "< $50 diff";
       if (rangeEl) rangeEl.style.display = "none";
+      if (olderEl) olderEl.style.display = "none";
     } else {
       valueText = "—";
       subText   = "No data";
       if (rangeEl) rangeEl.style.display = "none";
+      if (olderEl) olderEl.style.display = "none";
     }
 
     statusEl.textContent = valueText;
     statusEl.className   = "metric-value" + colorClass;
     subEl.textContent    = subText;
 
-    // Historical open gaps section.
+    // Historical open gaps section (card below).
     // If current status is "open", skip index 0 (current week already shown in card).
     const historicalGaps = d.status === "open"
       ? (d.open_gaps || []).slice(1)
@@ -1587,6 +1617,71 @@ function _renderOpenGaps(gaps, currentClosed = false) {
   }).join("");
 
   section.style.display = "";
+}
+
+function _openCmeModal() {
+  const d = _cmeData;
+  if (!d) return;
+
+  const overlay = document.getElementById("cme-modal");
+  const content = document.getElementById("cme-modal-content");
+  if (!overlay || !content) return;
+
+  // ── Current gap section ──
+  let statusLabel = "—";
+  let rows = [];
+
+  if (d.status === "open") {
+    const arrow = d.direction === "up" ? "↑" : "↓";
+    const sign  = d.direction === "up" ? "+" : "−";
+    statusLabel = arrow + " Open";
+    if (d.gap_low != null && d.gap_high != null) {
+      rows.push({ label: "Range", value: _fmtK(d.gap_low) + " – " + _fmtK(d.gap_high) });
+    }
+    if (d.gap_size) {
+      const pct = d.gap_pct ? " (" + d.gap_pct + "%)" : "";
+      rows.push({ label: "Size", value: sign + "$" + _fmtK(d.gap_size) + pct });
+    }
+  } else if (d.status === "closed") {
+    statusLabel = "Closed ✓";
+  } else if (d.status === "no_gap") {
+    statusLabel = "No gap";
+    rows.push({ label: "Diff", value: "< $50" });
+  }
+
+  rows.unshift({ label: "Status", value: statusLabel });
+
+  const currentHTML = rows.map(r =>
+    `<div class="cme-modal-row">
+      <span class="cme-modal-row-label">${r.label}</span>
+      <span class="cme-modal-row-value">${r.value}</span>
+    </div>`
+  ).join("");
+
+  // ── Older open gaps section ──
+  const older = (d.open_gaps || []).slice(d.status === "open" ? 1 : 0, d.status === "open" ? 4 : 3);
+  let olderHTML = "";
+  if (older.length > 0) {
+    const olderTitle = d.status === "open" ? "Other Open Gaps" : "Older Open Gaps";
+    const gapRows = older.map(g => {
+      const arrow     = g.direction === "up" ? "↑" : "↓";
+      const sizeSign  = g.direction === "up" ? "+" : "−";
+      const dt        = new Date(g.week + "T12:00:00Z");
+      const weekLabel = dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" });
+      return `<div class="cme-modal-row">
+        <span class="cme-modal-row-label">${weekLabel}</span>
+        <span class="cme-modal-row-value">${_fmtK(g.gap_low)}–${_fmtK(g.gap_high)} &nbsp; ${arrow} ${sizeSign}$${_fmtK(g.gap_size)}</span>
+      </div>`;
+    }).join("");
+    olderHTML = `<div class="cme-modal-section-title">${olderTitle}</div>${gapRows}`;
+  }
+
+  content.innerHTML = currentHTML + olderHTML;
+  overlay.classList.add("open");
+}
+
+function _closeCmeModal() {
+  document.getElementById("cme-modal")?.classList.remove("open");
 }
 
 /* ============================================================
