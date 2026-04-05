@@ -1547,7 +1547,7 @@ async function loadCmeGap() {
       const olderCount = (d.open_gaps || []).length;
       if (olderEl) {
         if (olderCount > 0) {
-          olderEl.textContent = olderCount === 1 ? "1 older open gap ↓" : olderCount + " older open gaps ↓";
+          olderEl.textContent = olderCount === 1 ? "⚠️ 1 open gap remains ↓" : "⚠️ " + olderCount + " open gaps remain ↓";
           olderEl.style.display = "";
         } else {
           olderEl.style.display = "none";
@@ -1662,7 +1662,7 @@ function _openCmeModal() {
   const older = (d.open_gaps || []).slice(d.status === "open" ? 1 : 0, d.status === "open" ? 4 : 3);
   let olderHTML = "";
   if (older.length > 0) {
-    const olderTitle = d.status === "open" ? "Other Open Gaps" : "Older Open Gaps";
+    const olderTitle = d.status === "open" ? "Other Open Gaps" : "Open Gaps Remaining";
     const gapRows = older.map(g => {
       const arrow     = g.direction === "up" ? "↑" : "↓";
       const sizeSign  = g.direction === "up" ? "+" : "−";
@@ -1673,7 +1673,10 @@ function _openCmeModal() {
         <span class="cme-modal-row-value">${_fmtK(g.gap_low)}–${_fmtK(g.gap_high)} &nbsp; ${arrow} ${sizeSign}$${_fmtK(g.gap_size)}</span>
       </div>`;
     }).join("");
-    olderHTML = `<div class="cme-modal-section-title">${olderTitle}</div>${gapRows}`;
+    olderHTML = `<div class="cme-modal-older-section">
+      <div class="cme-modal-older-title">⚠️ ${olderTitle}</div>
+      ${gapRows}
+    </div>`;
   }
 
   content.innerHTML = currentHTML + olderHTML;

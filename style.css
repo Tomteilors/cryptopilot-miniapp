@@ -366,9 +366,11 @@ html, body {
 .cme-gap-size.down { color: rgba(248,81,73,0.75); }
 
 .cme-older {
-  color: var(--text-dim);
-  font-size: 11px;
-  margin-top: 2px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+  letter-spacing: -0.1px;
 }
 
 /* ===== CME DETAIL MODAL ===== */
@@ -431,6 +433,22 @@ html, body {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 18px 0 8px;
+}
+
+.cme-modal-older-section {
+  margin-top: 14px;
+  background: rgba(245, 196, 81, 0.06);
+  border-left: 2px solid rgba(245, 196, 81, 0.45);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px 6px;
+}
+
+.cme-modal-older-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 8px;
+  letter-spacing: -0.1px;
 }
 
 /* ===== ALERT CARD ===== */
