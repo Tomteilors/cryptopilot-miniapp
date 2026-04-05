@@ -689,6 +689,26 @@ html, body {
   border: 1px solid rgba(125,133,144,0.15);
 }
 
+/* ── Modal status pills ──────────────────────────────────────────────────────── */
+.modal-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 20px 14px;
+}
+.status-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+  line-height: 1.4;
+}
+.sp-mega      { background: rgba(255, 90, 31, 0.14); color: #ff7043; border: 1px solid rgba(255, 90, 31, 0.28); }
+.sp-strong    { background: rgba(255,165,  0, 0.12); color: #ffa040; border: 1px solid rgba(255,165,  0, 0.25); }
+.sp-posted    { background: rgba( 56,139,253, 0.14); color: #58a6ff; border: 1px solid rgba( 56,139,253, 0.28); }
+.sp-not-posted{ background: rgba(125,133,144, 0.08); color: var(--text-dim); border: 1px solid rgba(125,133,144,0.15); }
+.sp-pinned    { background: rgba(245,196, 81, 0.14); color: var(--gold);    border: 1px solid rgba(245,196, 81, 0.28); }
+
 /* Level badge — MEGA */
 .badge-level {
   font-size: 10px;

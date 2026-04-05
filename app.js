@@ -444,6 +444,19 @@ function openSignalModal(id) {
   applyModalBtn("modal-btn-exchange", buildExchangeURL(s.exchange, s.symbol));
   applyModalBtn("modal-btn-channel",  s.channel_url || null, { hide: true });
 
+  // Status pills
+  const statusEl = document.getElementById("modal-status");
+  if (statusEl) {
+    const pills = [];
+    if      (s.level === "mega")   pills.push('<span class="status-pill sp-mega">🚨 MEGA</span>');
+    else if (s.level === "strong") pills.push('<span class="status-pill sp-strong">🔥 Strong</span>');
+    if      (s.posted_to_channel === true)  pills.push('<span class="status-pill sp-posted">📢 Posted</span>');
+    else if (s.posted_to_channel === false) pills.push('<span class="status-pill sp-not-posted">Not posted</span>');
+    if (s.pinned === true) pills.push('<span class="status-pill sp-pinned">📌 Pinned</span>');
+    statusEl.innerHTML = pills.join("");
+    statusEl.style.display = pills.length ? "flex" : "none";
+  }
+
   document.getElementById("signal-modal").classList.add("is-open");
 }
 
