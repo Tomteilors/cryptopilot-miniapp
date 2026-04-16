@@ -257,6 +257,18 @@ function renderDashboard(d) {
 
   /* CME Gap — populated separately by loadCmeGap() */
 
+  /* Macro */
+  function setMacro(priceId, changeId, price, change) {
+    document.getElementById(priceId).textContent = price > 0 ? fmtPrice(price) : "—";
+    const chEl = document.getElementById(changeId);
+    const sign = change >= 0 ? "+" : "";
+    chEl.textContent = price > 0 ? sign + change.toFixed(2) + "%" : "—";
+    chEl.className = "macro-change" + (change > 0 ? " up" : change < 0 ? " down" : "");
+  }
+  setMacro("spx-price",  "spx-change",  d.spx_price  || 0, d.spx_change  || 0);
+  setMacro("gold-price", "gold-change", d.gold_price || 0, d.gold_change || 0);
+  setMacro("oil-price",  "oil-change",  d.oil_price  || 0, d.oil_change  || 0);
+
   /* Last Alert */
   const al = d.last_alert;
   const badge = document.getElementById("alert-badge");

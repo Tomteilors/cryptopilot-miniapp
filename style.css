@@ -1782,3 +1782,45 @@ html, body {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* ===== MACRO CARD ===== */
+.macro-card {
+  padding: 16px 18px;
+}
+.macro-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.macro-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+.macro-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+.macro-price {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.macro-change {
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 56px;
+  text-align: right;
+}
+.macro-change.up   { color: var(--green); }
+.macro-change.down { color: var(--red); }
+.macro-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 -2px;
+}
